@@ -1,10 +1,12 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.db.models import *
 from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
 
 
 class User(AbstractUser, MPTTModel):
+    objects = UserManager()
+
     parent = TreeForeignKey('self', on_delete=CASCADE, verbose_name='Куратор', null=True, blank=True,
                             related_name='childs')
 
@@ -37,6 +39,5 @@ class User(AbstractUser, MPTTModel):
         return 'id', 'username', 'last_name', 'first_name', 'phone'
 
     class Meta:
-        abstract = True
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'

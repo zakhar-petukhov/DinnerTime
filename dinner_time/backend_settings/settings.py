@@ -25,9 +25,9 @@ SECRET_KEY = 'h_@ef_kz1t@$8&o!!qz!0oc5usvdu5all(oqjus+a-+kbl&cdz'
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+AUTH_USER_MODEL = 'users.User'
 
 # Application definition
-
 INSTALLED_APPS = [
     'jet.dashboard',
     'jet',
@@ -38,10 +38,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'apps.api',
+    'drf_yasg',
+    'rest_framework.authtoken',
     'sorl.thumbnail',
     'django_filters',
     'easy_thumbnails',
+    'apps.api',
+    'apps.dinner',
+    'apps.users',
 ]
 
 MIDDLEWARE = [
@@ -74,8 +78,22 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
             ],
         },
+    }, ]
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Token': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
     },
-]
+    'OPERATIONS_SORTER': '-method',
+    'DISPLAY_OPERATION_ID': False,
+    'TAGS_SORTER': None,
+    'DEFAULT_MODEL_RENDERING': 'example',
+    'USE_SESSION_AUTH': False
+}
 
 WSGI_APPLICATION = 'backend_settings.wsgi.application'
 
@@ -122,7 +140,7 @@ AUTH_PASSWORD_VALIDATORS = []
 
 LANGUAGE_CODE = 'ru-ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
@@ -138,9 +156,13 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'apps.core.pagination.CustomPagination',
-    'PAGE_SIZE': 1,
-    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
 
 DATE_FORMAT = '%d.%m.%Y'

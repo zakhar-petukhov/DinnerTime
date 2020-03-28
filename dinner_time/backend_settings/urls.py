@@ -17,12 +17,28 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework import permissions
+
+SchemaView = get_schema_view(
+    openapi.Info(
+        title="API",
+        default_version='v1.0',
+        contact=openapi.Contact(email="zakharpetukhov@protonmail.com"),
+    ),
+    public=True,
+    permission_classes=(permissions.IsAuthenticated,),
+)
 
 urlpatterns = [
     path('jet/', include('jet.urls', 'jet')),  # Django JET URLS
     path('jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),
     path('admin/', admin.site.urls),
+    path('swagger/', SchemaView.with_ui('swagger'), name='swagger'),
     path('api/v1/', include('apps.api.urls')),
+    path('dinner/', include('apps.dinner.urls')),
+    path('users/', include('apps.users.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

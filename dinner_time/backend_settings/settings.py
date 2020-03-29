@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'apps.api',
     'apps.dinner',
     'apps.users',
+    'apps.authentication',
 ]
 
 MIDDLEWARE = [

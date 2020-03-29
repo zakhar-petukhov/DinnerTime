@@ -28,7 +28,7 @@ SchemaView = get_schema_view(
         contact=openapi.Contact(email="zakharpetukhov@protonmail.com"),
     ),
     public=True,
-    permission_classes=(permissions.IsAuthenticated,),
+    permission_classes=(permissions.AllowAny,),
 )
 
 urlpatterns = [
@@ -39,6 +39,7 @@ urlpatterns = [
     path('api/v1/', include('apps.api.urls')),
     path('dinner/', include('apps.dinner.urls')),
     path('users/', include('apps.users.urls')),
+    path('auth/', include('apps.authentication.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

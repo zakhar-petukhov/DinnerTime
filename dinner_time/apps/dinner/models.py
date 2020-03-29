@@ -2,14 +2,13 @@ import datetime
 
 from django.db.models import *
 
-from users.models import User
+from apps.users.models import User
 
 
 class CompanyOrder(Model):
     company = ForeignKey(User, on_delete=PROTECT, related_name='dinners_orders', blank=True, null=True,
                          verbose_name='Компания')
-    dinners = ManyToManyField('dinner.Dinner', on_delete=PROTECT, related_name='in_orders', blank=True, null=True,
-                              verbose_name='Заказанные обеды')
+    dinners = ManyToManyField('dinner.Dinner', related_name='in_orders', blank=True, verbose_name='Заказанные обеды')
 
     create_date = DateTimeField(auto_now_add=True, auto_now=False, null=True, blank=True, verbose_name='Создано')
 
@@ -30,8 +29,7 @@ class Dinner(Model):
         (CONFIRMED, 'Подтвержден'),
     ]
 
-    dishes = ManyToManyField('dinner.Dish', on_delete=PROTECT, related_name='dinner_dishes', verbose_name='Блюдо',
-                             blank=True, null=True)
+    dishes = ManyToManyField('dinner.Dish', related_name='dinner_dishes', verbose_name='Блюдо', blank=True)
 
     date_action_begin = DateField(null=True, blank=True, verbose_name='Заказ на дату')
     status = SmallIntegerField(choices=STATUSES, blank=True, default=IN_PROCESSING, verbose_name='Статус')

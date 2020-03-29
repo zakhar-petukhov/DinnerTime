@@ -2,7 +2,7 @@ from django.contrib.auth import logout
 from django.core.exceptions import ImproperlyConfigured
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -16,7 +16,8 @@ class AuthViewSet(GenericViewSet):
     serializer_class = EmptySerializer
     serializer_classes = {
         'login': UserLoginSerializer,
-        'signup': UserSignUpSerializer
+        'signup': UserSignUpSerializer,
+        'password_change': PasswordChangeSerializer,
     }
 
     @action(methods=['POST', ], detail=False)
@@ -40,6 +41,14 @@ class AuthViewSet(GenericViewSet):
         logout(request)
         data = {'success': 'Успешный выход из системы'}
         return Response(data=data, status=status.HTTP_200_OK)
+
+    @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated, ])
+    def password_change(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        request.user.set_password(serializer.validated_data['new_password'])
+        request.user.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_serializer_class(self):
         if not isinstance(self.serializer_classes, dict):

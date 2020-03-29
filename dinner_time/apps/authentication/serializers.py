@@ -48,3 +48,17 @@ class UserSignUpSerializer(serializers.ModelSerializer):
     def validate_password(self, value):
         password_validation.validate_password(value)
         return value
+
+
+class PasswordChangeSerializer(serializers.Serializer):
+    current_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    def validate_current_password(self, value):
+        if not self.context['request'].user.check_password(value):
+            raise serializers.ValidationError('Текущий пароль не совпадает')
+        return value
+
+    def validate_new_password(self, value):
+        password_validation.validate_password(value)
+        return value

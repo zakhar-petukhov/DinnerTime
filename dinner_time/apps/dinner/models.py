@@ -3,6 +3,7 @@ import datetime
 from django.db.models import *
 
 from apps.users.models import User
+from apps.utils.models import Settings
 
 
 class CompanyOrder(Model):
@@ -69,6 +70,10 @@ class MenuGroup(Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = "Категория блюд"
+        verbose_name_plural = "Категория блюд"
+
 
 class Dish(Model):
     name = CharField(max_length=40, blank=True, null=True, verbose_name='Название блюда')
@@ -117,14 +122,14 @@ class Dish(Model):
 class Menu(Model):
     dish = ManyToManyField(Dish, verbose_name='Блюдо', blank=True)
     available_order_date = DateField(unique=True, null=True, blank=True, verbose_name='Меню на день')
-    # TODO вынести настройки
-    close_order_time = TimeField(default=datetime.time(15, 00), null=True, blank=True,
-                                 verbose_name='Окончание действия меню')
+    close_order_time = Settings.close_order_time
 
     # Проверяем доступно ли данное меню для заказа.
     @property
     def available_for_order(self):
-        pass
+        now_time = datetime.datetime.now().strftime('%H.%M')
+        if now_time <= self.close_order_time.strftime('%H.%M'):
+            return True
 
     class Meta:
         verbose_name = "Меню"

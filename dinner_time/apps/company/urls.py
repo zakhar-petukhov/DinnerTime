@@ -1,10 +1,9 @@
-from django.urls import path, include
-from rest_framework.authtoken import views
+from django.urls import path
 
-from apps.users.urls import router
+from apps.company.views import CreateCompanyView
 
 app_name = "COMPANY"
 
 urlpatterns = [
-
+    path('create/', CreateCompanyView.as_view(), name='create_company'),
 ]

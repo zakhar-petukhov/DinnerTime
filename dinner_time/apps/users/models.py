@@ -10,7 +10,7 @@ class User(AbstractUser, MPTTModel):
     parent = TreeForeignKey('self', on_delete=CASCADE, verbose_name='Куратор', null=True, blank=True,
                             related_name='childs')
 
-    first_name = CharField(max_length=20, blank=True, verbose_name='Имя')
+    first_name = CharField(max_length=20, null=True, blank=True, verbose_name='Имя')
     last_name = CharField(max_length=20, null=True, blank=True, verbose_name='Фамилия')
     middle_name = CharField(max_length=20, null=True, blank=True, verbose_name='Отчество')
 
@@ -23,6 +23,9 @@ class User(AbstractUser, MPTTModel):
 
     is_removed = BooleanField(default=False, verbose_name='Удален')
     removed_date = DateTimeField(null=True, blank=True, verbose_name='Дата удаленения')
+
+    company_name = CharField(max_length=25, null=True, blank=True, verbose_name='Название компании')
+    is_company = BooleanField(default=False, verbose_name='Признак компании')
 
     create_date = DateTimeField(auto_now_add=True, auto_now=False, null=True, blank=True, verbose_name='Создано')
     update_date = DateTimeField(auto_now_add=False, auto_now=True, verbose_name='Обновлено')

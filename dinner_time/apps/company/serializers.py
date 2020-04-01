@@ -8,8 +8,7 @@ class CreateCompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id', 'email', 'username', 'password', 'company_name', 'is_company', 'is_blocked', 'is_removed',
-            'create_date')
+            'id', 'email', 'company_name', 'create_date')
 
     def create_ref_link_for_update_auth_data(self, obj):
         link = ReferralLink.objects.create(user=obj, upid=ReferralLink.get_generate_upid())

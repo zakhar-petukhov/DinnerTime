@@ -1,4 +1,3 @@
-from django.contrib.auth import logout
 from django.core.exceptions import ImproperlyConfigured
 from rest_framework import status
 from rest_framework.decorators import action
@@ -6,6 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from apps.authentication.utils import logout
 from apps.users.serializers import EmptySerializer
 from .serializers import *
 from .utils import get_and_authenticate_user, create_user_account
@@ -20,15 +20,16 @@ class AuthViewSet(GenericViewSet):
         'password_change': PasswordChangeSerializer,
     }
 
-    @action(methods=['POST', ], detail=False)
+    @action(methods=['POST'], detail=False)
     def login(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = get_and_authenticate_user(**serializer.validated_data)
+        AuthUserSerializer(user).get_auth_token(user)
         data = AuthUserSerializer(user).data
         return Response(data=data, status=status.HTTP_200_OK)
 
-    @action(methods=['POST', ], detail=False)
+    @action(methods=['POST'], detail=False)
     def signup(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -36,13 +37,13 @@ class AuthViewSet(GenericViewSet):
         data = AuthUserSerializer(user).data
         return Response(data=data, status=status.HTTP_201_CREATED)
 
-    @action(methods=['POST', ], detail=False)
+    @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated, ])
     def logout(self, request):
         logout(request)
         data = {'success': 'Успешный выход из системы'}
         return Response(data=data, status=status.HTTP_200_OK)
 
-    @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated, ])
+    @action(methods=['PUT'], detail=False, permission_classes=[IsAuthenticated, ])
     def password_change(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

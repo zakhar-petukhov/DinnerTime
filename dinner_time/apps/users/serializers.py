@@ -11,3 +11,7 @@ class UserSerializers(serializers.ModelSerializer):
                   'last_name', 'middle_name', 'phone', 'email', 'email_verified', 'is_blocked', 'block_date',
                   'is_removed', 'removed_date', 'create_date', 'update_date', 'lft', 'rght', 'tree_id', 'level',
                   'parent', 'groups', 'user_permissions']
+
+
+class EmptySerializer(serializers.Serializer):
+    pass

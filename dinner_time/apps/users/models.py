@@ -41,3 +41,13 @@ class User(AbstractUser, MPTTModel):
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
+
+
+class Department(Model):
+    name = CharField(max_length=20, null=True, blank=True, verbose_name='Название')
+    user = ForeignKey(User, on_delete=PROTECT, related_name='users_department', blank=True, null=True,
+                      verbose_name='Компания')
+
+    class Meta:
+        verbose_name = 'Департамент'
+        verbose_name_plural = 'Департамент'

@@ -1,13 +1,20 @@
+from datetime import datetime
+
+import pytz
 from django.conf import settings
 from django.core.mail import EmailMessage
+from django.http import HttpResponse, HttpResponseBadRequest
+from rest_framework import filters
 from rest_framework import status, serializers
-from rest_framework.generics import CreateAPIView, UpdateAPIView, get_object_or_404
+from rest_framework.generics import CreateAPIView, UpdateAPIView, get_object_or_404, ListAPIView
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from apps.authentication.utils import create_user_account
 from apps.company.models import ReferralLink
-from apps.company.serializers import CreateCompanySerializer, ChangeRegAuthDataSerializer
+from apps.company.serializers import CreateCompanySerializer, ChangeRegAuthDataSerializer, \
+    GetInformationCompanySerializer
 from apps.users.models import User
 from apps.utils.func_for_send_message import send_message_for_change_auth_data
 
@@ -60,3 +67,25 @@ class UserChangeRegAuthDataView(UpdateAPIView):
             return Response(status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AllCompaniesView(ListAPIView):
+    queryset = User.objects.filter(is_company=True)
+    serializer_class = GetInformationCompanySerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['company_name']
+    permission_classes = [IsAdminUser]
+
+
+class RemoveCompaniesView(APIView):
+    def delete(self, request, company_id):
+        company = User.objects.get(id=company_id)
+
+        if request.user.is_superuser:
+            company.is_blocked = True
+            company.block_date = datetime.now(pytz.timezone(settings.TIME_ZONE))
+            company.save()
+
+            return HttpResponse(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return HttpResponseBadRequest()

@@ -21,9 +21,6 @@ class User(AbstractUser, MPTTModel):
     is_blocked = BooleanField(default=False, verbose_name='Заблокирован')
     block_date = DateTimeField(null=True, blank=True, verbose_name='Дата блокироваки')
 
-    is_removed = BooleanField(default=False, verbose_name='Удален')
-    removed_date = DateTimeField(null=True, blank=True, verbose_name='Дата удаленения')
-
     company_name = CharField(max_length=25, null=True, blank=True, verbose_name='Название компании')
     is_company = BooleanField(default=False, verbose_name='Признак компании')
 

@@ -45,8 +45,8 @@ class User(AbstractUser, MPTTModel):
 
 class Department(Model):
     name = CharField(max_length=20, null=True, blank=True, verbose_name='Название')
-    user = ForeignKey(User, on_delete=PROTECT, related_name='users_department', blank=True, null=True,
-                      verbose_name='Компания')
+    employee = ForeignKey(User, on_delete=PROTECT, related_name='employee_department', blank=True, null=True,
+                          verbose_name='Работники')
 
     class Meta:
         verbose_name = 'Департамент'

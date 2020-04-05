@@ -6,6 +6,7 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
 from apps.users.models import User
+from apps.utils.models import ReferralLink
 
 
 def get_and_authenticate_user(username, password):
@@ -58,3 +59,8 @@ def generate_random_username_password():
         'username': uuid.uuid4().hex[:20],
         'password': uuid.uuid4().hex[:30]
     }
+
+
+def create_ref_link_for_update_auth_data(obj):
+    link = ReferralLink.objects.create(user=obj, upid=ReferralLink.get_generate_upid())
+    return link.upid

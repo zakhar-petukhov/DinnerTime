@@ -11,12 +11,13 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.authentication.utils import create_user_account, generate_random_username_password
-from apps.company.models import ReferralLink
+from apps.authentication.utils import create_user_account, generate_random_username_password, \
+    create_ref_link_for_update_auth_data
 from apps.company.serializers import CreateCompanySerializer, ChangeRegAuthDataSerializer, \
     GetInformationCompanySerializer
 from apps.users.models import User
-from apps.utils.func_for_send_message import send_message_for_change_auth_data
+from apps.utils.func_for_send_message import send_message_for_change_auth_data_company
+from apps.utils.models import ReferralLink
 
 
 class CreateCompanyView(CreateAPIView):
@@ -30,11 +31,12 @@ class CreateCompanyView(CreateAPIView):
         serializer.validated_data.update(generate_random_username_password())
         company = create_user_account(**serializer.validated_data)
 
-        upid = serializer.create_ref_link_for_update_auth_data(obj=company)
+        upid = create_ref_link_for_update_auth_data(obj=company)
         headers = self.get_success_headers(serializer.data)
 
         url = settings.URL_FOR_CHANGE_AUTH_DATA.format(upid)
-        header, body = send_message_for_change_auth_data(url=url, company_name=serializer.data.get('company_name'))
+        header, body = send_message_for_change_auth_data_company(url=url,
+                                                                 company_name=serializer.data.get('company_name'))
         email = EmailMessage(header, body, to=[serializer.data.get('email')])
         email.send()
 

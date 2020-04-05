@@ -1,13 +1,17 @@
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.core.mail import EmailMessage
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from apps.authentication.utils import create_user_account, generate_random_username_password
+from apps.authentication.utils import create_user_account, generate_random_username_password, \
+    create_ref_link_for_update_auth_data
 from apps.users.permissions import IsCompanyAuthenticated
 from apps.users.serializers import *
+from apps.utils.func_for_send_message import send_message_for_change_auth_data_client
 
 User = get_user_model()
 
@@ -35,14 +39,23 @@ class DepartmentViewSet(GenericViewSet, mixins.ListModelMixin):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    # Create and add user into department
+    # Create, add user into department and send message for change password, and login on the mail
     @action(methods=['POST'], detail=False)
     def add_user(self, request):
         parent = request.user
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.validated_data.update(generate_random_username_password())
-        create_user_account(parent=parent, **serializer.validated_data)
+
+        user = create_user_account(parent=parent, **serializer.validated_data)
+        upid = create_ref_link_for_update_auth_data(obj=user)
+
+        url = settings.URL_FOR_CHANGE_AUTH_DATA.format(upid)
+        header, body = send_message_for_change_auth_data_client(url=url,
+                                                                company_name=parent.company_name)
+        email = EmailMessage(header, body, to=[serializer.data.get('email')])
+        email.send()
+
         return Response(status=status.HTTP_201_CREATED)
 
     def get_serializer_class(self):

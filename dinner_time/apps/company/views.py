@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.authentication.utils import create_user_account
+from apps.authentication.utils import create_user_account, generate_random_username_password
 from apps.company.models import ReferralLink
 from apps.company.serializers import CreateCompanySerializer, ChangeRegAuthDataSerializer, \
     GetInformationCompanySerializer
@@ -27,8 +27,10 @@ class CreateCompanyView(CreateAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = create_user_account(is_company=True, **serializer.validated_data)
-        upid = serializer.create_ref_link_for_update_auth_data(obj=user)
+        serializer.validated_data.update(generate_random_username_password())
+        company = create_user_account(**serializer.validated_data)
+
+        upid = serializer.create_ref_link_for_update_auth_data(obj=company)
         headers = self.get_success_headers(serializer.data)
 
         url = settings.URL_FOR_CHANGE_AUTH_DATA.format(upid)

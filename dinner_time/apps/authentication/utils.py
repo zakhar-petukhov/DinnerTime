@@ -5,6 +5,8 @@ from django.utils.translation import LANGUAGE_SESSION_KEY
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
+from apps.users.models import User
+
 
 def get_and_authenticate_user(username, password):
     user = authenticate(username=username, password=password)
@@ -14,16 +16,14 @@ def get_and_authenticate_user(username, password):
     return user
 
 
-def create_user_account(email, first_name="",
-                        last_name="", is_company=False, **extra_fields):
-    if is_company:
-        company = get_user_model().objects.create_user(
-            email=email, username=uuid.uuid4().hex[:20], password=uuid.uuid4().hex[:30], first_name=first_name,
-            last_name=last_name, **extra_fields)
-        return company
+def create_user_account(email, first_name="", last_name="", parent=None, **extra_fields):
+    phone_number = extra_fields.get('phone')
+    if phone_number:
+        phone = User().get_phone_number(phone=phone_number)
+        extra_fields['phone'] = phone
 
     user = get_user_model().objects.create_user(
-        email=email, first_name=first_name, last_name=last_name, **extra_fields)
+        email=email, first_name=first_name, last_name=last_name, parent=parent, **extra_fields)
     return user
 
 
@@ -51,3 +51,10 @@ def logout(request):
     if hasattr(request, 'user'):
         from django.contrib.auth.models import AnonymousUser
         request.user = AnonymousUser()
+
+
+def generate_random_username_password():
+    return {
+        'username': uuid.uuid4().hex[:20],
+        'password': uuid.uuid4().hex[:30]
+    }

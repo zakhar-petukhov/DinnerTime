@@ -1,29 +1,31 @@
-from datetime import datetime
-
-import pytz
-from django.conf import settings
 from django.core.mail import EmailMessage
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.utils.decorators import method_decorator
+from drf_yasg.openapi import Response
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import filters
-from rest_framework import status, serializers
-from rest_framework.generics import CreateAPIView, UpdateAPIView, get_object_or_404, ListAPIView
+from rest_framework import status
+from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView, get_object_or_404
 from rest_framework.permissions import IsAdminUser
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from apps.authentication.utils import create_user_account, generate_random_username_password, \
     create_ref_link_for_update_auth_data
-from apps.company.serializers import CreateCompanySerializer, ChangeRegAuthDataSerializer, \
-    GetInformationCompanySerializer
+from apps.company.serializers import *
 from apps.users.models import User
 from apps.utils.func_for_send_message import send_message_for_change_auth_data_company
-from apps.utils.models import ReferralLink
 
 
+@method_decorator(name='post', decorator=swagger_auto_schema(
+    operation_summary='Создание компании',
+    responses={
+        '201': Response('Создано', CompanyCreateSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
 class CreateCompanyView(CreateAPIView):
     queryset = User.objects.all()
-    serializer_class = CreateCompanySerializer
-    permission_classes = (IsAdminUser,)
+    serializer_class = CompanyCreateSerializer
+    permission_classes = [IsAdminUser]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -43,53 +45,58 @@ class CreateCompanyView(CreateAPIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
-class UserChangeRegAuthDataView(UpdateAPIView):
-    serializer_class = ChangeRegAuthDataSerializer
-    model = User
-    permission_classes = ()
-
-    def get_object(self):
-        upid = self.kwargs["referral_upid"]
-        obj = get_object_or_404(ReferralLink, upid=upid, is_active=True)
-
-        return obj
-
-    def update(self, request, *args, **kwargs):
-        obj = self.get_object()
-        serializer = self.get_serializer(data=request.data)
-
-        if serializer.is_valid():
-            if User.objects.filter(username=serializer.data.get("username")).exists():
-                raise serializers.ValidationError(
-                    "Такой username уже занят, пожалуйста, введите другой и повторите запрос.")
-
-            obj.user.set_password(serializer.data.get("password"))
-            obj.is_active = False
-            obj.user.save()
-            obj.save()
-
-            return Response(status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    operation_summary='Просмотр всех компаний',
+    operation_description='Просмотр всех компаний. Есть возможность отфильтровать по названию',
+    responses={
+        '200': Response('Успешно', CompanySerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
 class AllCompaniesView(ListAPIView):
     queryset = User.objects.filter(is_company=True)
-    serializer_class = GetInformationCompanySerializer
+    serializer_class = CompanySerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['company_name']
     permission_classes = [IsAdminUser]
 
 
-class RemoveCompaniesView(APIView):
-    def delete(self, request, company_id):
-        company = User.objects.get(id=company_id)
+@method_decorator(name='put', decorator=swagger_auto_schema(
+    operation_summary='Блокировка или разблокировка компании',
+    request_body=CompanyBlockSerializer,
+    responses={
+        '200': Response('Успешно', CompanySerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
+class CompanyUpdateBlockView(UpdateAPIView):
+    serializer_class = CompanyBlockSerializer
+    model = User
+    permission_classes = [IsAdminUser]
 
-        if request.user.is_superuser:
-            company.is_blocked = True
-            company.block_date = datetime.now(pytz.timezone(settings.TIME_ZONE))
-            company.save()
+    def get_object(self):
+        company_id = self.kwargs.get("pk")
+        obj = get_object_or_404(User, id=company_id, is_company=True)
 
-            return HttpResponse(status=status.HTTP_204_NO_CONTENT)
-        else:
-            return HttpResponseBadRequest()
+        return obj
+
+
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    operation_summary='Детальный просмотр одной компании.',
+    operation_description='''Есть возможность полностью посмотореть данные о компании \
+(сколько человек, какие созданы отделы)''',
+    responses={
+        '200': Response('Успешно', CompanyDetailSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
+class CompanyDetailView(ListAPIView):
+    serializer_class = CompanyDetailSerializer
+    permission_classes = [IsAdminUser]
+
+    def get_queryset(self):
+        company_id = self.kwargs.get('company_id')
+        return User.objects.filter(id=company_id, is_company=True)

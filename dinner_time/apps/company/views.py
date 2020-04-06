@@ -77,7 +77,7 @@ class CompanyUpdateBlockView(UpdateAPIView):
     permission_classes = [IsAdminUser]
 
     def get_object(self):
-        company_id = self.kwargs.get("pk")
+        company_id = self.kwargs.get("company_id")
         obj = get_object_or_404(User, id=company_id, is_company=True)
 
         return obj
@@ -88,13 +88,13 @@ class CompanyUpdateBlockView(UpdateAPIView):
     operation_description='''Есть возможность полностью посмотореть данные о компании \
 (сколько человек, какие созданы отделы)''',
     responses={
-        '200': Response('Успешно', CompanyDetailSerializer),
+        '200': Response('Успешно', CompanySerializer),
         '400': 'Неверный формат запроса'
     }
 )
                   )
 class CompanyDetailView(ListAPIView):
-    serializer_class = CompanyDetailSerializer
+    serializer_class = CompanySerializer
     permission_classes = [IsAdminUser]
 
     def get_queryset(self):

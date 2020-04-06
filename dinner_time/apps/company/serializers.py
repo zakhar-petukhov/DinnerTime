@@ -13,9 +13,21 @@ class CompanySerializer(serializers.ModelSerializer):
     A serializer for get all information about company
     """
 
+    all_person = serializers.SerializerMethodField('get_all_person', label='Все сотрудники')
+    department = serializers.SerializerMethodField('get_all_department', label='Все отделы')
+
+    def get_all_person(self, obj):
+        return len(User.objects.filter(parent=obj.id))
+
+    def get_all_department(self, obj):
+        qs = Department.objects.filter(company_id=obj.id)
+        serializer = DepartmentSerializer(instance=qs, many=True)
+        return serializer.data
+
     class Meta:
         model = User
-        fields = ['id', 'company_name', 'first_name', 'last_name', 'middle_name', 'phone', 'email', 'is_blocked']
+        fields = ['id', 'company_name', 'first_name', 'last_name', 'middle_name', 'phone', 'email', 'is_blocked',
+                  'all_person', 'department']
 
 
 class CompanyBlockSerializer(serializers.ModelSerializer):
@@ -23,17 +35,29 @@ class CompanyBlockSerializer(serializers.ModelSerializer):
     A serializer which blocks or unlocks the company
     """
 
-    is_blocked = serializers.BooleanField(initial=False, label='Заблокирован')
-    block_date = serializers.SerializerMethodField('get_block_date', label='Дата блокировки')
+    def to_representation(self, obj):
+        inf = {
+            "is_blocked": obj.is_blocked,
+            "block_date": obj.block_date
+        }
 
-    def get_block_date(self, obj):
-        if obj.is_blocked:
-            return datetime.now(pytz.timezone(settings.TIME_ZONE))
-        return None
+        return inf
+
+    def to_internal_value(self, data):
+        if data.get('is_blocked'):
+            return {
+                "is_blocked": data.get('is_blocked'),
+                "block_date": datetime.now(pytz.timezone(settings.TIME_ZONE)),
+            }
+
+        return {
+            "is_blocked": data.get('is_blocked'),
+            "block_date": None,
+        }
 
     class Meta:
         model = User
-        fields = ['is_blocked', 'block_date']
+        fields = ['is_blocked']
 
 
 class CompanyCreateSerializer(serializers.ModelSerializer):
@@ -44,26 +68,3 @@ class CompanyCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'email', 'company_name', 'create_date', 'is_company')
-
-
-class CompanyDetailSerializer(serializers.ModelSerializer):
-    """
-    A serializer for get detail information about company
-    """
-
-    department = serializers.SerializerMethodField('get_all_department', label='Все отделы')
-    all_person = serializers.SerializerMethodField('get_all_person', label='Все сотрудники')
-
-    def get_all_department(self, obj):
-        qs = Department.objects.filter(company_id=obj.id)
-        serializer = DepartmentSerializer(instance=qs, many=True)
-        return serializer.data
-
-    def get_all_person(self, obj):
-        return len(User.objects.filter(parent=obj.id))
-
-    class Meta:
-        model = User
-        fields = (
-            'id', 'company_name', 'first_name', 'last_name', 'middle_name', 'phone', 'email', 'is_blocked',
-            'department', 'all_person')

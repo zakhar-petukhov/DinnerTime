@@ -1,4 +1,7 @@
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.decorators import method_decorator
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.generics import UpdateAPIView, get_object_or_404
@@ -13,6 +16,41 @@ from .serializers import *
 from .utils import get_and_authenticate_user, create_user_account
 
 
+@method_decorator(name='signup', decorator=swagger_auto_schema(
+    operation_summary='Создание учетной записи',
+    responses={
+        '201': openapi.Response('Создано', UserSignUpSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
+@method_decorator(name='login', decorator=swagger_auto_schema(
+    operation_summary='Аутентификация и авторизация',
+    responses={
+        '200': openapi.Response('Успешно', UserLoginSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+
+                  )
+@method_decorator(name='logout', decorator=swagger_auto_schema(
+    operation_summary='Выход из системы',
+    responses={
+        '200': openapi.Response('Успешно', UserLoginSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+
+                  )
+@method_decorator(name='password_change', decorator=swagger_auto_schema(
+    operation_description='Пользоваель вводит существующий и новый пароль',
+    operation_summary='Смена пароля',
+    responses={
+        '202': openapi.Response('Успешно', PasswordChangeSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
 class AuthViewSet(GenericViewSet):
     permission_classes = [AllowAny, ]
     serializer_class = EmptySerializer
@@ -39,7 +77,7 @@ class AuthViewSet(GenericViewSet):
         data = AuthUserSerializer(user).data
         return Response(data=data, status=status.HTTP_201_CREATED)
 
-    @action(methods=['POST'], detail=False, permission_classes=[IsAuthenticated, ])
+    @action(methods=['GET'], detail=False, permission_classes=[IsAuthenticated, ])
     def logout(self, request):
         logout(request)
         data = {'success': 'Успешный выход из системы'}
@@ -51,7 +89,7 @@ class AuthViewSet(GenericViewSet):
         serializer.is_valid(raise_exception=True)
         request.user.set_password(serializer.validated_data['new_password'])
         request.user.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_202_ACCEPTED)
 
     def get_serializer_class(self):
         if not isinstance(self.serializer_classes, dict):
@@ -62,6 +100,17 @@ class AuthViewSet(GenericViewSet):
         return super().get_serializer_class()
 
 
+@method_decorator(name='put', decorator=swagger_auto_schema(
+    operation_summary='Смена пароля компании / сотрудника',
+    operation_description='''Администратор добавляет через свою панель компанию, на ее почту приходит письмо с ссылкой \
+для смены пароля.
+Компания, в свою очередь, может добавить сотрудника в свой отдел и ему приходит тоже письмо о смене пароля.''',
+    responses={
+        '200': openapi.Response('Успешно', PasswordChangeSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
 class UserChangeRegAuthDataView(UpdateAPIView):
     serializer_class = ChangeRegAuthDataSerializer
     model = User

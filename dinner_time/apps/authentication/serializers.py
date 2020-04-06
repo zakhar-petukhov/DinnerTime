@@ -65,3 +65,16 @@ class PasswordChangeSerializer(serializers.Serializer):
     def validate_new_password(self, value):
         password_validation.validate_password(value)
         return value
+
+
+class ChangeRegAuthDataSerializer(serializers.ModelSerializer):
+    """
+    A serializer for update username and password when clicking on the registration link
+    """
+
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
+
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'middle_name', 'phone', 'username', 'password')

@@ -1,12 +1,14 @@
 from django.core.exceptions import ImproperlyConfigured
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.generics import UpdateAPIView, get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from apps.authentication.utils import logout
 from apps.users.serializers import EmptySerializer
+from apps.utils.models import ReferralLink
 from .serializers import *
 from .utils import get_and_authenticate_user, create_user_account
 
@@ -58,3 +60,33 @@ class AuthViewSet(GenericViewSet):
         if self.action in self.serializer_classes.keys():
             return self.serializer_classes[self.action]
         return super().get_serializer_class()
+
+
+class UserChangeRegAuthDataView(UpdateAPIView):
+    serializer_class = ChangeRegAuthDataSerializer
+    model = User
+    permission_classes = ()
+
+    def get_object(self):
+        upid = self.kwargs["referral_upid"]
+        obj = get_object_or_404(ReferralLink, upid=upid, is_active=True)
+
+        return obj
+
+    def update(self, request, *args, **kwargs):
+        obj = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            if User.objects.filter(username=serializer.data.get("username")).exists():
+                raise serializers.ValidationError(
+                    "Такой username уже занят, пожалуйста, введите другой и повторите запрос.")
+
+            obj.user.set_password(serializer.data.get("password"))
+            obj.is_active = False
+            obj.user.save()
+            obj.save()
+
+            return Response(status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

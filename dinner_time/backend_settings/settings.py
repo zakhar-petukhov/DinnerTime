@@ -172,6 +172,11 @@ DATE_FORMAT = '%d.%m.%Y'
 TIME_FORMAT = '%H:%M:%S'
 DATETIME_FORMAT = '%d.%m.%Y'
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+
 if os.environ.get('DJANGO_DEVELOPMENT') is not None:
     print('Start with DEV settings')
     from .settings_dev import *

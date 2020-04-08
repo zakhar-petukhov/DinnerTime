@@ -1,17 +1,22 @@
 import uuid
 
-from django.contrib.auth import authenticate, get_user_model, user_logged_out
+from django.contrib.auth import get_user_model
+from django.contrib.auth import user_logged_out
+from django.contrib.auth.models import User
+from django.db.models import Q
 from django.utils.translation import LANGUAGE_SESSION_KEY
+from phonenumbers import NumberParseException
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
+from apps.company.models import Company
 from apps.users.models import User
 from apps.utils.models import ReferralLink
-from apps.company.models import Company
 
 
-def get_and_authenticate_user(username, password):
-    user = authenticate(username=username, password=password)
+def get_and_authenticate_user(password, username=None):
+    auth = CustomAuthenticationBackend()
+    user = auth.authenticate(email_or_phone=username, password=password)
     if user is None:
         raise serializers.ValidationError("Некорректные учётные данные. Пожалуйста, попробуйте ещё раз")
 
@@ -71,3 +76,32 @@ def generate_random_username_password():
 def create_ref_link_for_update_auth_data(obj):
     link = ReferralLink.objects.create(user=obj, upid=ReferralLink.get_generate_upid())
     return link.upid
+
+
+class CustomAuthenticationBackend:
+    def authenticate(self, email_or_phone=None, password=None):
+        try:
+            email_or_phone = self.get_valid_phone(email_or_phone)
+
+            user = User.objects.get(
+                Q(email=email_or_phone) | Q(phone=email_or_phone)
+            )
+            pwd_valid = user.check_password(password)
+            if pwd_valid:
+                return user
+            return None
+        except User.DoesNotExist:
+            return None
+
+    def get_user(self, user_id):
+        try:
+            return User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return None
+
+    def get_valid_phone(self, email_or_phone):
+        try:
+            email_or_phone = User().get_phone_number(email_or_phone)
+            return email_or_phone
+        except NumberParseException:
+            return email_or_phone

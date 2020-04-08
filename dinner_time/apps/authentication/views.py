@@ -13,17 +13,9 @@ from apps.authentication.utils import logout
 from apps.users.serializers import EmptySerializer
 from apps.utils.models import ReferralLink
 from .serializers import *
-from .utils import get_and_authenticate_user, create_user_account
+from .utils import get_and_authenticate_user
 
 
-@method_decorator(name='signup', decorator=swagger_auto_schema(
-    operation_summary='Создание учетной записи',
-    responses={
-        '201': openapi.Response('Создано', UserSignUpSerializer),
-        '400': 'Неверный формат запроса'
-    }
-)
-                  )
 @method_decorator(name='login', decorator=swagger_auto_schema(
     operation_summary='Аутентификация и авторизация',
     responses={
@@ -36,7 +28,7 @@ from .utils import get_and_authenticate_user, create_user_account
 @method_decorator(name='logout', decorator=swagger_auto_schema(
     operation_summary='Выход из системы',
     responses={
-        '200': openapi.Response('Успешно', UserLoginSerializer),
+        '200': openapi.Response('Успешный выход из системы'),
         '400': 'Неверный формат запроса'
     }
 )
@@ -46,7 +38,7 @@ from .utils import get_and_authenticate_user, create_user_account
     operation_description='Пользоваель вводит существующий и новый пароль',
     operation_summary='Смена пароля',
     responses={
-        '202': openapi.Response('Успешно', PasswordChangeSerializer),
+        '202': openapi.Response('Успешно'),
         '400': 'Неверный формат запроса'
     }
 )
@@ -56,7 +48,6 @@ class AuthViewSet(GenericViewSet):
     serializer_class = EmptySerializer
     serializer_classes = {
         'login': UserLoginSerializer,
-        'signup': UserSignUpSerializer,
         'password_change': PasswordChangeSerializer,
     }
 
@@ -68,14 +59,6 @@ class AuthViewSet(GenericViewSet):
         AuthUserSerializer(user).get_auth_token(user)
         data = AuthUserSerializer(user).data
         return Response(data=data, status=status.HTTP_200_OK)
-
-    @action(methods=['POST'], detail=False)
-    def signup(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = create_user_account(**serializer.validated_data)
-        data = AuthUserSerializer(user).data
-        return Response(data=data, status=status.HTTP_201_CREATED)
 
     @action(methods=['GET'], detail=False, permission_classes=[IsAuthenticated, ])
     def logout(self, request):

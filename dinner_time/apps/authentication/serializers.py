@@ -1,5 +1,4 @@
 from django.contrib.auth import password_validation
-from django.contrib.auth.base_user import BaseUserManager
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
@@ -30,26 +29,6 @@ class AuthUserSerializer(serializers.ModelSerializer):
         return token.key
 
 
-class UserSignUpSerializer(serializers.ModelSerializer):
-    """
-    A user serializer for registering the user
-    """
-
-    class Meta:
-        model = User
-        fields = ('id', 'email', 'username', 'password', 'first_name', 'last_name')
-
-    def validate_email(self, value):
-        user = User.objects.filter(email=value)
-        if user:
-            raise serializers.ValidationError("Пользователь с таким email уже существует.")
-        return BaseUserManager.normalize_email(value)
-
-    def validate_password(self, value):
-        password_validation.validate_password(value)
-        return value
-
-
 class PasswordChangeSerializer(serializers.Serializer):
     """
     A user serializer for change password
@@ -69,17 +48,10 @@ class PasswordChangeSerializer(serializers.Serializer):
 
 class ChangeRegAuthDataSerializer(serializers.ModelSerializer):
     """
-    A serializer for update username and password when clicking on the registration link
+    A serializer for update password when clicking on the registration link
     """
 
-    username = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
-
-    def validate_username(self, username):
-        if User.objects.filter(username=username):
-            raise serializers.ValidationError(
-                "Такой username уже занят, пожалуйста, введите другой и повторите запрос.")
-        return username
 
     def validate_phone(self, phone_number):
         phone = User().get_phone_number(phone_number)
@@ -87,4 +59,4 @@ class ChangeRegAuthDataSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'middle_name', 'phone', 'username', 'password', 'email_verified')
+        fields = ('first_name', 'last_name', 'middle_name', 'phone', 'password', 'email_verified')

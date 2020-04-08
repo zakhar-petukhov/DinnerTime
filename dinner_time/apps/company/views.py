@@ -1,7 +1,8 @@
 from django.core.mail import EmailMessage
 from django.utils.decorators import method_decorator
-from drf_yasg.openapi import Response
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework.response import Response
 from rest_framework import filters
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView, get_object_or_404
@@ -17,7 +18,7 @@ from apps.utils.func_for_send_message import send_message_for_change_auth_data_c
 @method_decorator(name='post', decorator=swagger_auto_schema(
     operation_summary='Создание компании',
     responses={
-        '201': Response('Создано', CompanyCreateSerializer),
+        '201': openapi.Response('Создано', CompanyCreateSerializer),
         '400': 'Неверный формат запроса'
     }
 )
@@ -38,7 +39,8 @@ class CreateCompanyView(CreateAPIView):
 
         url = settings.URL_FOR_CHANGE_AUTH_DATA.format(upid)
         header, body = send_message_for_change_auth_data_company(url=url,
-                                                                 company_name=serializer.data.get('company_name'))
+                                                                 company_name=serializer.data['company_data'].get(
+                                                                     'company_name'))
         email = EmailMessage(header, body, to=[serializer.data.get('email')])
         email.send()
 
@@ -49,16 +51,16 @@ class CreateCompanyView(CreateAPIView):
     operation_summary='Просмотр всех компаний',
     operation_description='Просмотр всех компаний. Есть возможность отфильтровать по названию',
     responses={
-        '200': Response('Успешно', CompanySerializer),
+        '200': openapi.Response('Успешно', CompanySerializer),
         '400': 'Неверный формат запроса'
     }
 )
                   )
 class AllCompaniesView(ListAPIView):
-    queryset = User.objects.filter(is_company=True)
+    queryset = User.objects.filter(company_data__isnull=False)
     serializer_class = CompanySerializer
     filter_backends = [filters.SearchFilter]
-    search_fields = ['company_name']
+    search_fields = ['company_data__company_name']
     permission_classes = [IsAdminUser]
 
 
@@ -66,7 +68,7 @@ class AllCompaniesView(ListAPIView):
     operation_summary='Блокировка или разблокировка компании',
     request_body=CompanyBlockSerializer,
     responses={
-        '200': Response('Успешно', CompanySerializer),
+        '200': openapi.Response('Успешно', CompanySerializer),
         '400': 'Неверный формат запроса'
     }
 )
@@ -78,7 +80,7 @@ class CompanyUpdateBlockView(UpdateAPIView):
 
     def get_object(self):
         company_id = self.kwargs.get("company_id")
-        obj = get_object_or_404(User, id=company_id, is_company=True)
+        obj = get_object_or_404(User, company_data=company_id)
 
         return obj
 
@@ -88,7 +90,7 @@ class CompanyUpdateBlockView(UpdateAPIView):
     operation_description='''Есть возможность полностью посмотореть данные о компании \
 (сколько человек, какие созданы отделы)''',
     responses={
-        '200': Response('Успешно', CompanySerializer),
+        '200': openapi.Response('Успешно', CompanySerializer),
         '400': 'Неверный формат запроса'
     }
 )
@@ -99,4 +101,4 @@ class CompanyDetailView(ListAPIView):
 
     def get_queryset(self):
         company_id = self.kwargs.get('company_id')
-        return User.objects.filter(id=company_id, is_company=True)
+        return User.objects.filter(company_data=company_id)

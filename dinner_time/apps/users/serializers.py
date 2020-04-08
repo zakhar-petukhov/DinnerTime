@@ -10,7 +10,7 @@ from rest_framework.fields import SkipField, set_value
 from rest_framework.relations import PKOnlyObject
 from rest_framework.settings import api_settings
 
-from apps.users.models import Department
+from apps.company.models import Department, Company
 
 User = get_user_model()
 
@@ -19,6 +19,10 @@ class UserCreateSerializer(serializers.ModelSerializer):
     """
     Serializer for create user
     """
+
+    def validate_phone(self, phone_number):
+        phone = User().get_phone_number(phone_number)
+        return phone
 
     class Meta:
         model = User
@@ -49,8 +53,8 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'last_login', 'is_superuser', 'username', 'is_staff', 'is_active', 'date_joined', 'first_name',
                   'last_name', 'middle_name', 'phone', 'email', 'email_verified', 'department', 'is_blocked',
-                  'block_date', 'create_date', 'update_date', 'lft', 'rght', 'tree_id', 'level', 'parent', 'groups',
-                  'user_permissions']
+                  'block_date', 'company_data', 'create_date', 'update_date', 'lft', 'rght', 'tree_id', 'level',
+                  'parent', 'groups', 'user_permissions']
 
 
 class UserChangeSerializer(serializers.ModelSerializer):

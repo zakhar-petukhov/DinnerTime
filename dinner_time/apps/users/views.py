@@ -39,6 +39,7 @@ User = get_user_model()
                   )
 class UserViewSet(GenericViewSet, mixins.UpdateModelMixin):
     permission_classes = [IsCompanyAuthenticated, ]
+    queryset = ()
     serializer_class = EmptySerializer
     serializer_classes = {
         'detail_information': UserSerializer,
@@ -128,7 +129,7 @@ class DepartmentViewSet(GenericViewSet, mixins.ListModelMixin):
 
         url = settings.URL_FOR_CHANGE_AUTH_DATA.format(upid)
         header, body = send_message_for_change_auth_data_client(url=url,
-                                                                company_name=parent.company_name)
+                                                                company_name=parent.company_data.company_name)
         email = EmailMessage(header, body, to=[serializer.data.get('email')])
         email.send()
 

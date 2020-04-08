@@ -7,6 +7,7 @@ from rest_framework.authtoken.models import Token
 
 from apps.users.models import User
 from apps.utils.models import ReferralLink
+from apps.company.models import Company
 
 
 def get_and_authenticate_user(username, password):
@@ -19,9 +20,15 @@ def get_and_authenticate_user(username, password):
 
 def create_user_account(email, first_name="", last_name="", parent=None, **extra_fields):
     phone_number = extra_fields.get('phone')
+    company_data = extra_fields.get('company_data')
+
     if phone_number:
         phone = User().get_phone_number(phone=phone_number)
         extra_fields['phone'] = phone
+
+    if company_data:
+        company = Company.objects.create(**company_data)
+        extra_fields['company_data'] = company
 
     user = get_user_model().objects.create_user(
         email=email, first_name=first_name, last_name=last_name, parent=parent, **extra_fields)

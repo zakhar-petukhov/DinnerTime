@@ -75,6 +75,16 @@ class ChangeRegAuthDataSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
 
+    def validate_username(self, username):
+        if User.objects.filter(username=username):
+            raise serializers.ValidationError(
+                "Такой username уже занят, пожалуйста, введите другой и повторите запрос.")
+        return username
+
+    def validate_phone(self, phone_number):
+        phone = User().get_phone_number(phone_number)
+        return phone
+
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'middle_name', 'phone', 'username', 'password')
+        fields = ('first_name', 'last_name', 'middle_name', 'phone', 'username', 'password', 'email_verified')

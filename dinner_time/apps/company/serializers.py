@@ -4,17 +4,31 @@ import pytz
 from django.conf import settings
 from rest_framework import serializers
 
-from apps.users.models import User, Department
-from users.serializers import DepartmentSerializer
+from apps.company.models import Department, Company
+from apps.users.models import User
+from apps.users.serializers import DepartmentSerializer
 
 
-class CompanySerializer(serializers.ModelSerializer):
+class CompanyDetailSerializer(serializers.ModelSerializer):
     """
     A serializer for get all information about company
     """
 
+    class Meta:
+        model = Company
+        fields = (
+            'id', 'company_name', 'full_address', 'inn', 'kpp', 'ogrn', 'registration_date', 'bank_name',
+            'bik', 'corporate_account', 'settlement_account')
+
+
+class CompanySerializer(serializers.ModelSerializer):
+    """
+    Main serializer for company
+    """
+
     all_person = serializers.SerializerMethodField('get_all_person', label='Все сотрудники')
     department = serializers.SerializerMethodField('get_all_department', label='Все отделы')
+    company_data = CompanyDetailSerializer()
 
     def get_all_person(self, obj):
         return len(User.objects.filter(parent=obj.id))
@@ -26,7 +40,7 @@ class CompanySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'company_name', 'first_name', 'last_name', 'middle_name', 'phone', 'email', 'is_blocked',
+        fields = ['id', 'company_data', 'first_name', 'last_name', 'middle_name', 'phone', 'email', 'is_blocked',
                   'all_person', 'department']
 
 
@@ -64,7 +78,9 @@ class CompanyCreateSerializer(serializers.ModelSerializer):
     """
     A serializer for create company in admin panel
     """
+    company_data = CompanyDetailSerializer()
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'company_name', 'create_date', 'is_company')
+        fields = ('id', 'first_name', 'last_name', 'middle_name', 'phone', 'email', 'company_data',
+                  'create_date', 'is_company')

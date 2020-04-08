@@ -66,9 +66,8 @@ def logout(request):
         request.user = AnonymousUser()
 
 
-def generate_random_username_password():
+def generate_random_password():
     return {
-        'username': uuid.uuid4().hex[:20],
         'password': uuid.uuid4().hex[:30]
     }
 

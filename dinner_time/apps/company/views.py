@@ -57,7 +57,7 @@ class CreateCompanyView(CreateAPIView):
 )
                   )
 class AllCompaniesView(ListAPIView):
-    queryset = User.objects.filter(company_data__isnull=False)
+    queryset = User.objects.filter(company_data__isnull=False, is_active=True)
     serializer_class = CompanySerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['company_data__company_name']
@@ -75,6 +75,28 @@ class AllCompaniesView(ListAPIView):
                   )
 class CompanyUpdateBlockView(UpdateAPIView):
     serializer_class = CompanyBlockSerializer
+    model = User
+    permission_classes = [IsAdminUser]
+
+    def get_object(self):
+        company_id = self.kwargs.get("company_id")
+        obj = get_object_or_404(User, company_data=company_id)
+
+        return obj
+
+
+@method_decorator(name='put', decorator=swagger_auto_schema(
+    operation_summary='Удаление компании',
+    operation_description='Компания становится в статус неактивна, но из базы данных не удаляется',
+    request_body=CompanyDeleteSerializer,
+    responses={
+        '200': openapi.Response('Успешно', CompanySerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
+class CompanyUpdateDeleteView(UpdateAPIView):
+    serializer_class = CompanyDeleteSerializer
     model = User
     permission_classes = [IsAdminUser]
 

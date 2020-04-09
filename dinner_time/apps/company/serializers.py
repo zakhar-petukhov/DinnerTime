@@ -74,6 +74,16 @@ class CompanyBlockSerializer(serializers.ModelSerializer):
         fields = ['is_blocked']
 
 
+class CompanyDeleteSerializer(serializers.ModelSerializer):
+    """
+    A serializer for delete company
+    """
+
+    class Meta:
+        model = User
+        fields = ['is_active']
+
+
 class CompanyCreateSerializer(serializers.ModelSerializer):
     """
     A serializer for create company in admin panel

@@ -1,12 +1,16 @@
+from datetime import datetime
+
+import pytz
+from django.conf import settings
 from django.core.mail import EmailMessage
 from django.utils.decorators import method_decorator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework.response import Response
 from rest_framework import filters
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView, get_object_or_404
 from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
 
 from apps.authentication.utils import create_user_account, generate_random_password, \
     create_ref_link_for_update_auth_data
@@ -18,14 +22,14 @@ from apps.utils.func_for_send_message import send_message_for_change_auth_data_c
 @method_decorator(name='post', decorator=swagger_auto_schema(
     operation_summary='Создание компании',
     responses={
-        '201': openapi.Response('Создано', CompanyCreateSerializer),
+        '201': openapi.Response('Создано', CompanySerializer),
         '400': 'Неверный формат запроса'
     }
 )
                   )
 class CreateCompanyView(CreateAPIView):
     queryset = User.objects.all()
-    serializer_class = CompanyCreateSerializer
+    serializer_class = CompanySerializer
     permission_classes = [IsAdminUser]
 
     def post(self, request, *args, **kwargs):
@@ -64,49 +68,6 @@ class AllCompaniesView(ListAPIView):
     permission_classes = [IsAdminUser]
 
 
-@method_decorator(name='put', decorator=swagger_auto_schema(
-    operation_summary='Блокировка или разблокировка компании',
-    request_body=CompanyBlockSerializer,
-    responses={
-        '200': openapi.Response('Успешно', CompanySerializer),
-        '400': 'Неверный формат запроса'
-    }
-)
-                  )
-class CompanyUpdateBlockView(UpdateAPIView):
-    serializer_class = CompanyBlockSerializer
-    model = User
-    permission_classes = [IsAdminUser]
-
-    def get_object(self):
-        company_id = self.kwargs.get("company_id")
-        obj = get_object_or_404(User, company_data=company_id)
-
-        return obj
-
-
-@method_decorator(name='put', decorator=swagger_auto_schema(
-    operation_summary='Удаление компании',
-    operation_description='Компания становится в статус неактивна, но из базы данных не удаляется',
-    request_body=CompanyDeleteSerializer,
-    responses={
-        '200': openapi.Response('Успешно', CompanySerializer),
-        '400': 'Неверный формат запроса'
-    }
-)
-                  )
-class CompanyUpdateDeleteView(UpdateAPIView):
-    serializer_class = CompanyDeleteSerializer
-    model = User
-    permission_classes = [IsAdminUser]
-
-    def get_object(self):
-        company_id = self.kwargs.get("company_id")
-        obj = get_object_or_404(User, company_data=company_id)
-
-        return obj
-
-
 @method_decorator(name='get', decorator=swagger_auto_schema(
     operation_summary='Детальный просмотр одной компании.',
     operation_description='''Есть возможность полностью посмотореть данные о компании \
@@ -124,3 +85,48 @@ class CompanyDetailView(ListAPIView):
     def get_queryset(self):
         company_id = self.kwargs.get('company_id')
         return User.objects.filter(company_data=company_id)
+
+
+@method_decorator(name='put', decorator=swagger_auto_schema(
+    operation_summary='Обновление данных компании',
+    operation_description='''
+Можем производить все манипуляции с компанией:
+1) Обновление любого поля менеджера компании
+2) Обновление любого поля самой компании
+3) Блокировка компании {"is_block": true} ---> {"is_block": false}
+4) Удаление компании {"is_active": false} - компания переводится в статус неактивна, но из базы данных не удаляется
+''',
+    request_body=CompanySerializer,
+    responses={
+        '200': openapi.Response('Успешно', CompanySerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
+class CompanyChangeDetailView(UpdateAPIView):
+    serializer_class = CompanySerializer
+    permission_classes = [IsAdminUser]
+
+    def get_object(self):
+        company_id = self.kwargs.get("company_id")
+        obj = get_object_or_404(User, company_data=company_id)
+        return obj
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        company_data = request.data.pop('company_data', None)
+        is_blocked = request.data.pop('is_blocked', None)
+
+        if company_data:
+            company = Company.objects.filter(company_user=instance).update(**company_data)
+
+        if is_blocked in [True, False]:
+            instance.is_blocked = is_blocked
+            instance.block_date = datetime.now(pytz.timezone(settings.TIME_ZONE)) if is_blocked else None
+            instance.save()
+
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(serializer.data)

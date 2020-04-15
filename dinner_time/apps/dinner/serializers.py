@@ -1,6 +1,7 @@
+from django.db import transaction
 from rest_framework import serializers
 
-from apps.dinner.models import Menu, Dish, MenuGroup
+from apps.dinner.models import *
 
 
 class RecursiveField(serializers.Serializer):
@@ -10,11 +11,49 @@ class RecursiveField(serializers.Serializer):
 
 
 class DishSerializer(serializers.ModelSerializer):
-    additional_dish = RecursiveField(many=True, required=False)
+    added_dish = RecursiveField(many=True, required=False)
 
     class Meta:
         model = Dish
-        fields = ('id', 'name', 'cost', 'weight', 'composition', 'menu_group', 'added_dish', 'additional_dish')
+        fields = ('id', 'name', 'cost', 'weight', 'composition', 'menu_group', 'added_dish', 'for_complex')
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        dishes = self.initial_data.get("added_dish")
+
+        for dish in dishes:
+            id = dish.get("id")
+            instance.pk = None
+            instance.save()
+            # instance.added_dish.create(Dish.objects.get(pk=id))
+
+        instance.__dict__.update(**validated_data)
+        instance.save()
+        return instance
+
+
+class ComplexDinnerSerializer(serializers.ModelSerializer):
+    dishes = DishSerializer(many=True, required=False)
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        dishes = self.initial_data.get("dishes")
+
+        for dish in dishes:
+            id = dish.get("id")
+            copy_dish = Dish.objects.filter(pk=id).first()
+            copy_dish.pk = None
+            copy_dish.for_complex = True
+            copy_dish.save()
+            instance.dishes.add(copy_dish)
+
+        instance.__dict__.update(**validated_data)
+        instance.save()
+        return instance
+
+    class Meta:
+        model = ComplexDinner
+        fields = ['id', 'name', 'dishes']
 
 
 class DishGroupSerializer(serializers.ModelSerializer):

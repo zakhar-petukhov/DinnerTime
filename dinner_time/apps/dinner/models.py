@@ -75,6 +75,15 @@ class MenuGroup(Model):
         verbose_name_plural = "Категория блюд"
 
 
+class ComplexDinner(Model):
+    name = CharField(max_length=40, blank=True, null=True, verbose_name='Название комплексного обеда')
+    dishes = ManyToManyField('dinner.Dish', related_name='complex_dishes', verbose_name='Блюдо', blank=True)
+
+    class Meta:
+        verbose_name = "Комплексный обед"
+        verbose_name_plural = "Комплексный обед"
+
+
 class Dish(Model):
     name = CharField(max_length=40, blank=True, null=True, verbose_name='Название блюда')
     cost = FloatField(blank=True, null=True, verbose_name='Цена')
@@ -82,8 +91,9 @@ class Dish(Model):
     composition = CharField(max_length=120, blank=True, null=True, verbose_name='Состав')
     menu_group = ForeignKey(MenuGroup, on_delete=PROTECT, related_name='dishes', verbose_name='Группа меню',
                             blank=True, null=True)
-    added_dish = ForeignKey('self', on_delete=PROTECT, related_name='additional_menu',
-                            verbose_name='Дополнительное блюдо', blank=True, null=True)
+    added_dish = ManyToManyField('self', related_name='additional_dish', blank=True, symmetrical=False,
+                                 verbose_name='Дополнительное блюдо')
+    for_complex = BooleanField(default=False, verbose_name='Для комплексного обеда')
 
     @classmethod
     def search(cls, name: str,

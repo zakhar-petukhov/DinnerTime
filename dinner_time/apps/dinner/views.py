@@ -6,6 +6,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import ModelViewSet
 
 from apps.dinner.serializers import *
+from .data_for_swagger import request_for_dish, request_for_complex_dinner, request_for_create_category_dish, \
+    request_for_update_category_dish
 
 
 @method_decorator(name='list', decorator=swagger_auto_schema(
@@ -23,9 +25,10 @@ from apps.dinner.serializers import *
 Метод позволяет:
 1) добавлять блюда в категорию, путем передачи id категории в menu_group.
 2) изменять основную информацию о блюде.
-2) добавлять к блюду гарниры, путем передачи id блюда в added_dish.
+2) добавлять к блюду гарниры, путем передачи id блюда в added_dish и проставления флага принадлежности к  \
+комплексному обеду.
 ''',
-    request_body=DishSerializer,
+    request_body=request_for_dish,
     responses={
         '200': openapi.Response('Успешно', DishSerializer),
         '400': 'Неверный формат запроса'
@@ -34,7 +37,12 @@ from apps.dinner.serializers import *
                   )
 @method_decorator(name='create', decorator=swagger_auto_schema(
     operation_summary='Создание блюда.',
-    request_body=DishSerializer,
+    operation_description='''
+Метод позволяет:
+1) создать просто блюдо без гарниров
+2) добавить сразу гарнир, путем передачи в added_dish id другого блюда и установки флага пренадлежности к \
+комплексному обеду.''',
+    request_body=request_for_dish,
     responses={
         '201': openapi.Response('Создано', DishSerializer),
         '400': 'Неверный формат запроса'
@@ -43,7 +51,7 @@ from apps.dinner.serializers import *
                   )
 class DishViewSet(ModelViewSet):
     permission_classes = [AllowAny]
-    queryset = Dish.objects.filter(for_complex=False)
+    queryset = Dish.objects.all()
     serializer_class = DishSerializer
 
     def get_object(self):
@@ -60,7 +68,7 @@ class DishViewSet(ModelViewSet):
                   )
 @method_decorator(name='update', decorator=swagger_auto_schema(
     operation_summary='Обновление названия категории.',
-    request_body=DishGroupSerializer,
+    request_body=request_for_update_category_dish,
     responses={
         '200': openapi.Response('Успешно', DishGroupSerializer),
         '400': 'Неверный формат запроса'
@@ -69,7 +77,7 @@ class DishViewSet(ModelViewSet):
                   )
 @method_decorator(name='create', decorator=swagger_auto_schema(
     operation_summary='Создание категории.',
-    request_body=DishGroupSerializer,
+    request_body=request_for_create_category_dish,
     responses={
         '201': openapi.Response('Создано', DishGroupSerializer),
         '400': 'Неверный формат запроса'
@@ -98,9 +106,9 @@ class DishGroupViewSet(ModelViewSet):
     operation_description='''
 Метод позволяет:
 1) добавлять блюда в комплексный обед, путем вставки id блюда в список dishes.
-2) изменять название самого обеда.
+2) изменять информацию самого обеда.
 ''',
-    request_body=ComplexDinnerSerializer,
+    request_body=request_for_complex_dinner,
     responses={
         '200': openapi.Response('Успешно', ComplexDinnerSerializer),
         '400': 'Неверный формат запроса'
@@ -111,9 +119,9 @@ class DishGroupViewSet(ModelViewSet):
     operation_summary='Создание комплексного обеда.',
     operation_description='''
 Можно создать комплексный обед путем заполнения только его названия, а блюда добавлять в методе PUT, либо \
-можно сразу создавать блюда внутри списка dishes.
+можно сразу добавлять блюда внутри списка dishes.
 ''',
-    request_body=ComplexDinnerSerializer,
+    request_body=request_for_complex_dinner,
     responses={
         '201': openapi.Response('Создано', ComplexDinnerSerializer),
         '400': 'Неверный формат запроса'

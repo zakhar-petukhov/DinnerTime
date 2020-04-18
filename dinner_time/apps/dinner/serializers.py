@@ -18,12 +18,22 @@ class DishSerializer(serializers.ModelSerializer):
     """
     Serializer for dish with update method
     """
-
+    id = serializers.IntegerField(read_only=False, required=False)
     added_dish = RecursiveField(many=True, required=False)
 
     class Meta:
         model = Dish
-        fields = ('id', 'name', 'cost', 'weight', 'composition', 'menu_group', 'added_dish', 'for_complex')
+        fields = ('id', 'name', 'cost', 'weight', 'composition', 'menu_group', 'added_dish')
+
+    def create(self, validated_data):
+        validated_data.pop('added_dish')
+        create_dish = Dish.objects.create(**validated_data)
+
+        for dish in self.initial_data.get("added_dish"):
+            dish_id = dish.get("id")
+            create_dish.added_dish.add(dish_id)
+
+        return create_dish
 
     @transaction.atomic
     def update(self, instance, validated_data):
@@ -46,14 +56,13 @@ class ComplexDinnerSerializer(serializers.ModelSerializer):
     dishes = DishSerializer(many=True, required=False)
 
     def create(self, validated_data):
-        choice_validated_data = validated_data.pop('dishes')
+        dishes = validated_data.pop('dishes')
         complex_dinner = ComplexDinner.objects.create(**validated_data)
-        choice_set_serializer = self.fields['dishes']
 
-        for dish in choice_validated_data:
-            create_dish = Dish.objects.create(**dish, for_complex=True)
-            complex_dinner.dishes.add(create_dish)
-            choice_set_serializer.create(choice_validated_data)
+        for dish in dishes:
+            dish_id = dish.get("id")
+            copy_dish = Dish.objects.filter(pk=dish_id).first()
+            complex_dinner.dishes.add(copy_dish)
 
         return complex_dinner
 
@@ -61,11 +70,8 @@ class ComplexDinnerSerializer(serializers.ModelSerializer):
         dishes = self.initial_data.get("dishes")
 
         for dish in dishes:
-            id = dish.get("id")
-            copy_dish = Dish.objects.filter(pk=id).first()
-            copy_dish.pk = None  # Create duplicate dish and add flag for_complex
-            copy_dish.for_complex = True
-            copy_dish.save()
+            dish_id = dish.get("id")
+            copy_dish = Dish.objects.filter(pk=dish_id).first()
             instance.dishes.add(copy_dish)
 
         instance.__dict__.update(**validated_data)

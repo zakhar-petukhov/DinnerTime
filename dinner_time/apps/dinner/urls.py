@@ -15,7 +15,8 @@ urlpatterns = [
 
     path('change_dish/<dish_id>', DishViewSet.as_view({'put': 'update'}), name='change_dish'),
     path('change_dish_group/<dish_group_id>', DishGroupViewSet.as_view({'put': 'update'}), name='change_dish_group'),
-    path('change_complex_dinner/<complex_id>/', ComplexDinnerViewSet.as_view({'put': 'update'}),
+    path('change_complex_dinner/<complex_id>/',
+         ComplexDinnerViewSet.as_view({'put': 'update'}, name='change_complex_dinner'),
          name='change_complex_dinner'),
 
 ]

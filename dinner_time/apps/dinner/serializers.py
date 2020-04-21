@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.dinner.models import *
-from apps.dinner.utils import create_additional_dish, create_additional_dish_for_complex
+from apps.dinner.utils import get_additional_dish, get_additional_dish_for_complex
 
 
 class AddedDishSerializer(serializers.ModelSerializer):
@@ -43,12 +43,12 @@ class DishSerializer(serializers.ModelSerializer):
         validated_data.pop('added_dish', None)
         create_dish = Dish.objects.create(**validated_data)
         dishes = self.initial_data.get("added_dish", [])
-        create_additional_dish(dishes, create_dish)
+        get_additional_dish(dishes, create_dish)
         return create_dish
 
     def update(self, instance, validated_data):
         dishes = self.initial_data.get("added_dish", [])
-        create_additional_dish(dishes, instance)
+        get_additional_dish(dishes, instance)
         instance.category_dish = validated_data.pop('category_dish', instance.category_dish)
         instance.__dict__.update(**validated_data)
         instance.save()
@@ -75,12 +75,12 @@ class ComplexDinnerSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop("dishes", None)
         complex_dinner = ComplexDinner.objects.create(**validated_data)
-        create_additional_dish_for_complex(self.initial_data.get("dishes", []), complex_dinner)
+        get_additional_dish_for_complex(self.initial_data.get("dishes", []), complex_dinner)
         return complex_dinner
 
     def update(self, instance, validated_data):
         validated_data.pop("dishes", None)
-        create_additional_dish_for_complex(self.initial_data.get("dishes", []), instance)
+        get_additional_dish_for_complex(self.initial_data.get("dishes", []), instance)
         instance.__dict__.update(**validated_data)
         instance.save()
         return instance

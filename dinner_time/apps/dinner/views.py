@@ -92,7 +92,7 @@ class DishCategoryViewSet(ModelViewSet):
 
 
 @method_decorator(name='list', decorator=swagger_auto_schema(
-    operation_summary='Получение всех комплексных обедов.',
+    operation_summary='Получение информации по комлпексным(-ому) обедам(-у).',
     responses={
         '200': openapi.Response('Успешно', ComplexDinnerSerializer),
         '400': 'Неверный формат запроса'

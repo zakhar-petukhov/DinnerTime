@@ -1,4 +1,4 @@
-from drf_yasg.openapi import Schema, TYPE_OBJECT, TYPE_STRING, TYPE_ARRAY, TYPE_INTEGER, Items
+from drf_yasg.openapi import Schema, TYPE_OBJECT, TYPE_STRING, TYPE_ARRAY, TYPE_INTEGER, Items, TYPE_BOOLEAN
 
 request_for_dish = Schema(type=TYPE_OBJECT,
                           properties={
@@ -17,8 +17,10 @@ request_for_complex_dinner = Schema(type=TYPE_OBJECT,
                                         'dishes': Schema(type=TYPE_ARRAY, title='Блюда',
                                                          items=Items(enum={
                                                              'id': TYPE_INTEGER,
+                                                             'is_remove': TYPE_BOOLEAN,
                                                              'added_dish': [{
-                                                                 'id': TYPE_INTEGER}],
+                                                                 'id': TYPE_INTEGER,
+                                                                 'is_remove': TYPE_BOOLEAN}],
                                                          }, type=TYPE_STRING))})
 
 request_for_create_category_dish = Schema(type=TYPE_OBJECT,

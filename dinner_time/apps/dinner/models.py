@@ -64,7 +64,7 @@ class Dinner(Model):
         verbose_name_plural = "Обед"
 
 
-class MenuGroup(Model):
+class CategoryDish(Model):
     name = CharField(max_length=40, blank=True, null=True, verbose_name='Название группы')
 
     def __str__(self):
@@ -77,7 +77,7 @@ class MenuGroup(Model):
 
 class ComplexDinner(Model):
     name = CharField(max_length=40, blank=True, null=True, verbose_name='Название комплексного обеда')
-    dishes = ManyToManyField('dinner.Dish', related_name='complex_dishes', verbose_name='Блюдо', blank=True)
+    dishes = ManyToManyField('dinner.Dish', related_name='complex_dishes', verbose_name='Блюда', blank=True)
 
     class Meta:
         verbose_name = "Комплексный обед"
@@ -89,11 +89,13 @@ class Dish(Model):
     cost = FloatField(blank=True, null=True, verbose_name='Цена')
     weight = FloatField(blank=True, null=True, verbose_name='Вес')
     composition = CharField(max_length=120, blank=True, null=True, verbose_name='Состав')
-    menu_group = ForeignKey(MenuGroup, on_delete=PROTECT, related_name='dishes', verbose_name='Группа меню',
-                            blank=True, null=True)
+    category_dish = ForeignKey(CategoryDish, on_delete=PROTECT, related_name='dishes', verbose_name='Категория блюд',
+                               blank=True, null=True)
     added_dish = ManyToManyField('self', related_name='additional_dish', blank=True, symmetrical=False,
-                                 verbose_name='Дополнительное блюдо')
-    for_complex = BooleanField(default=False, verbose_name='Для комплексного обеда')
+                                 verbose_name='Дополнительное блюдо', through='dinner.AddedDish')
+
+    def __str__(self):
+        return self.name
 
     @classmethod
     def search(cls, name: str,
@@ -127,6 +129,16 @@ class Dish(Model):
     class Meta:
         verbose_name = "Блюдо"
         verbose_name_plural = "Блюдо"
+
+
+class AddedDish(Model):
+    to_dish = ForeignKey(Dish, on_delete=CASCADE, related_name='to_dish_check',
+                         verbose_name='К какому блюду прибавляем')
+    from_dish = ForeignKey(Dish, on_delete=CASCADE, related_name='from_dish_check',
+                           verbose_name='Какое блюдо прибавляем')
+    сomplex_dinner = ForeignKey(ComplexDinner, on_delete=CASCADE, related_name='added_dish_for_complex', blank=True,
+                                null=True, verbose_name='Принадлежность к комплексному обеду')
+    for_complex = BooleanField(default=False, verbose_name='Для комплексного обеда')
 
 
 class Menu(Model):

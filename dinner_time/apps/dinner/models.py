@@ -79,6 +79,9 @@ class ComplexDinner(Model):
     name = CharField(max_length=40, blank=True, null=True, verbose_name='Название комплексного обеда')
     dishes = ManyToManyField('dinner.Dish', related_name='complex_dishes', verbose_name='Блюда', blank=True)
 
+    def __str__(self):
+        return self.name
+
     class Meta:
         verbose_name = "Комплексный обед"
         verbose_name_plural = "Комплексный обед"
@@ -91,40 +94,12 @@ class Dish(Model):
     composition = CharField(max_length=120, blank=True, null=True, verbose_name='Состав')
     category_dish = ForeignKey(CategoryDish, on_delete=PROTECT, related_name='dishes', verbose_name='Категория блюд',
                                blank=True, null=True)
+    is_active = BooleanField(default=True, verbose_name='Статус активности')
     added_dish = ManyToManyField('self', related_name='additional_dish', blank=True, symmetrical=False,
                                  verbose_name='Дополнительное блюдо', through='dinner.AddedDish')
 
     def __str__(self):
         return self.name
-
-    @classmethod
-    def search(cls, name: str,
-               queryset=None):
-        """
-        Метод поиска по объектам класса Dish
-
-        @param name: (str) Искомое значение
-                Строка в любом регистре
-        @param queryset: (QuerySet) Использовать готовый queryset для поиска в диапазоне переданной выборки
-
-        @return: QuerySet
-        """
-
-        name = str(name).title()
-
-        """
-            Если не передан QuerySet то поиск производится по всем блюдам
-        """
-        if not queryset:
-            queryset = cls.objects.all()
-
-        """
-            Поиск будет производится только среди моделей определенного блюда
-        """
-        if name:
-            queryset = queryset.filter(name=name)
-
-        return queryset
 
     class Meta:
         verbose_name = "Блюдо"
@@ -141,18 +116,21 @@ class AddedDish(Model):
     for_complex = BooleanField(default=False, verbose_name='Для комплексного обеда')
 
 
-class Menu(Model):
-    dish = ManyToManyField(Dish, verbose_name='Блюдо', blank=True)
+class DayMenu(Model):
+    dish = ManyToManyField('dinner.Dish', blank=True, verbose_name='Блюда')
+    complex_dinner = ManyToManyField('dinner.ComplexDinner', blank=True, verbose_name='Комплексные обеды')
     available_order_date = DateField(unique=True, null=True, blank=True, verbose_name='Меню на день')
-    close_order_time = Settings.close_order_time
+    close_order_time = ForeignKey('utils.Settings', on_delete=PROTECT, null=True, blank=True,
+                                  verbose_name='Последний час заказа еды на день',
+                                  default=Settings.objects.get(enabled=True).id)
 
-    # Проверяем доступно ли данное меню для заказа.
+    # Check whether this menu is available for ordering.
     @property
     def available_for_order(self):
         now_time = datetime.datetime.now().strftime('%H.%M')
-        if now_time <= self.close_order_time.strftime('%H.%M'):
+        if now_time <= self.close_order_time.close_order_time.strftime('%H.%M'):
             return True
 
     class Meta:
-        verbose_name = "Меню"
-        verbose_name_plural = "Меню"
+        verbose_name = "Дневное меню"
+        verbose_name_plural = "Дневное меню"

@@ -1,6 +1,7 @@
 import datetime
 import secrets
 
+from config_models.models import ConfigurationModel
 from django.conf import settings
 from django.db.models import *
 from django.db.models import Model
@@ -8,9 +9,8 @@ from django.db.models import Model
 from apps.users.models import User
 
 
-class Settings(Model):
-    close_order_time = TimeField(default=datetime.time(15, 00), null=True, blank=True,
-                                 verbose_name='Окончание действия меню')
+class Settings(ConfigurationModel):
+    close_order_time = TimeField(default=datetime.time(15, 00), verbose_name='Окончание действия меню')
 
 
 class ReferralLink(Model):

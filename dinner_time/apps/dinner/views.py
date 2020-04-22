@@ -6,8 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import ModelViewSet
 
 from apps.dinner.serializers import *
-from .data_for_swagger import request_for_dish, request_for_complex_dinner, request_for_create_category_dish, \
-    request_for_update_category_dish
+from .data_for_swagger import *
 
 
 @method_decorator(name='list', decorator=swagger_auto_schema(
@@ -139,3 +138,23 @@ class ComplexDinnerViewSet(ModelViewSet):
 
     def get_serializer_context(self):
         return {'for_complex': True}
+
+
+@method_decorator(name='create', decorator=swagger_auto_schema(
+    operation_summary='Создание меню.',
+    operation_description='''
+''',
+    request_body=request_for_create_menu,
+    responses={
+        '201': openapi.Response('Создано', ComplexDinnerSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
+class MenuViewSet(ModelViewSet):
+    permission_classes = [AllowAny]
+    queryset = DayMenu.objects.all()
+    serializer_class = MenuSerializer
+
+    def get_object(self):
+        return get_object_or_404(DayMenu, id=self.kwargs.get("menu_id"))

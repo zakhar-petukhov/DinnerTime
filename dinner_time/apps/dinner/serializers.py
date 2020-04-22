@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from apps.dinner.models import *
 from apps.dinner.utils import get_additional_dish, get_additional_dish_for_complex
+from apps.utils.serializers import SettingsSerializer
 
 
 class AddedDishSerializer(serializers.ModelSerializer):
@@ -30,7 +31,7 @@ class DishSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Dish
-        fields = ('id', 'name', 'cost', 'weight', 'composition', 'category_dish', 'added_dish')
+        fields = ('id', 'name', 'cost', 'weight', 'composition', 'category_dish', 'added_dish', 'is_active')
 
     def get_added_dish(self, obj):
         is_complex = self.context.get("for_complex", False)
@@ -60,6 +61,7 @@ class ComplexDinnerSerializer(serializers.ModelSerializer):
     Serializer for complex dinner with create and update method
     """
 
+    id = serializers.IntegerField(read_only=False, required=False)
     dishes = serializers.SerializerMethodField()
 
     class Meta:
@@ -99,8 +101,30 @@ class DishCategorySerializer(serializers.ModelSerializer):
 
 
 class MenuSerializer(serializers.ModelSerializer):
-    dish = DishSerializer(many=True)
+    """
+    Serializer for menu (create, update)
+    """
+
+    dish = DishSerializer(many=True, required=False)
+    complex_dinner = ComplexDinnerSerializer(many=True, required=False)
+    close_order_time = SettingsSerializer()
 
     class Meta:
-        model = Menu
-        fields = ['id', 'dish', 'available_order_date', 'close_order_time']
+        model = DayMenu
+        fields = ['id', 'dish', 'complex_dinner', 'available_order_date', 'close_order_time']
+
+    def create(self, validated_data):
+        dish_validated_data = validated_data.pop('dish', [])
+        complex_dinner_validated_data = validated_data.pop('complex_dinner', [])
+
+        menu = DayMenu.objects.create(**validated_data)
+
+        for dish in dish_validated_data:
+            dishes = Dish.objects.get(pk=dish.get('id'))
+            menu.dish.add(dishes)
+
+        for complex_dinner in complex_dinner_validated_data:
+            complex = ComplexDinner.objects.get(pk=complex_dinner.get('id'))
+            menu.complex_dinner.add(complex)
+
+        return menu

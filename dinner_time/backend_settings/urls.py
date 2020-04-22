@@ -40,6 +40,8 @@ urlpatterns = [
     path('dinner/', include('apps.dinner.urls')),
     path('users/', include('apps.users.urls')),
     path('auth/', include('apps.authentication.urls')),
+    path('company/', include('apps.company.urls')),
+    path('settings/', include('apps.utils.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

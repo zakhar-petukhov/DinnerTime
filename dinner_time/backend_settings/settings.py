@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'apps.authentication',
     'apps.utils',
     'apps.company',
+    'phonenumber_field',
+    'config_models',
 ]
 
 MIDDLEWARE = [

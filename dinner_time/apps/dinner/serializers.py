@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.dinner.models import *
-from apps.dinner.utils import get_additional_dish, get_additional_dish_for_complex
+from apps.dinner.utils import get_additional_dish, get_additional_dish_for_complex, get_day_menu
 from apps.utils.serializers import SettingsSerializer
 
 
@@ -107,7 +107,7 @@ class MenuSerializer(serializers.ModelSerializer):
 
     dish = DishSerializer(many=True, required=False)
     complex_dinner = ComplexDinnerSerializer(many=True, required=False)
-    close_order_time = SettingsSerializer()
+    close_order_time = SettingsSerializer(required=False)
 
     class Meta:
         model = DayMenu
@@ -118,13 +118,28 @@ class MenuSerializer(serializers.ModelSerializer):
         complex_dinner_validated_data = validated_data.pop('complex_dinner', [])
 
         menu = DayMenu.objects.create(**validated_data)
-
-        for dish in dish_validated_data:
-            dishes = Dish.objects.get(pk=dish.get('id'))
-            menu.dish.add(dishes)
-
-        for complex_dinner in complex_dinner_validated_data:
-            complex = ComplexDinner.objects.get(pk=complex_dinner.get('id'))
-            menu.complex_dinner.add(complex)
+        get_day_menu(menu, dish_validated_data, complex_dinner_validated_data)
 
         return menu
+
+    def update(self, instance, validated_data):
+        dish_validated_data = validated_data.pop('dish')
+        complex_dinner_validated_data = validated_data.pop('complex_dinner')
+
+        instance = super().update(instance, validated_data)
+        get_day_menu(instance, dish_validated_data, complex_dinner_validated_data)
+
+        return instance
+
+    def to_internal_value(self, data):
+        internal_value = super(MenuSerializer, self).to_internal_value(data)
+
+        dishes = data.get("dish", [])
+        complex_dinner = data.get("complex_dinner", [])
+
+        internal_value.update({
+            "dish": dishes,
+            "complex_dinner": complex_dinner
+        })
+
+        return internal_value

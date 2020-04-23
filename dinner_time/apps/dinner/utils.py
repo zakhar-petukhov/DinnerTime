@@ -1,4 +1,4 @@
-from apps.dinner.models import Dish, AddedDish
+from apps.dinner.models import Dish, AddedDish, ComplexDinner
 
 
 def get_additional_dish_for_complex(initial_data, сomplex_dinner):
@@ -46,3 +46,29 @@ def get_additional_dish(initial_data, main_dish, for_complex=False, сomplex_din
 
     if сomplex_dinner:
         return сomplex_dinner.dishes.add(main_dish)
+
+
+def get_day_menu(instance, dish_validated_data, complex_dinner_validated_data):
+    """
+    In this function:
+    1) we can remove dish from menu
+    2) we can add dish in menu
+    """
+
+    for dish in dish_validated_data:
+        is_remove = dish.get("is_remove", False)
+
+        dish = Dish.objects.get(pk=dish.get('id'))
+        if is_remove:
+            instance.dish.remove(dish)
+        else:
+            instance.dish.add(dish)
+
+    for complex_dinner in complex_dinner_validated_data:
+        is_remove = complex_dinner.get("is_remove", False)
+
+        complex_dinner = ComplexDinner.objects.get(pk=complex_dinner.get('id'))
+        if is_remove:
+            instance.complex_dinner.remove(complex_dinner)
+        else:
+            instance.complex_dinner.add(complex_dinner)

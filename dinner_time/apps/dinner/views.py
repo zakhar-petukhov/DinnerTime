@@ -140,13 +140,42 @@ class ComplexDinnerViewSet(ModelViewSet):
         return {'for_complex': True}
 
 
-@method_decorator(name='create', decorator=swagger_auto_schema(
-    operation_summary='Создание меню.',
+@method_decorator(name='list', decorator=swagger_auto_schema(
+    operation_summary='Получение информации по дневному меню.',
+    responses={
+        '200': openapi.Response('Успешно', MenuSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
+@method_decorator(name='update', decorator=swagger_auto_schema(
+    operation_summary='Обновление данных дневного меню.',
     operation_description='''
+Метод позволяет:
+1) добавить блюда в меню путем добавления "id" блюда в dish.
+2) удалять блюда путем добавления "id" блюда в dish и постановки флага is_remove.
+3) добавить комплексный обед в меню путем добавления "id" комплексного обеда в complex_dinner.
+4) удалять комплексный обед путем добавления "id" комплексного обеда в complex_dinner и постановки флага is_remove.
+5) менять дату показа этого меню.
 ''',
     request_body=request_for_create_menu,
     responses={
-        '201': openapi.Response('Создано', ComplexDinnerSerializer),
+        '200': openapi.Response('Успешно', MenuSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
+@method_decorator(name='create', decorator=swagger_auto_schema(
+    operation_summary='Создание меню.',
+    operation_description='''
+Метод позволяет:
+1) собрать меню из блюд путем добавления "id" блюда в dish.
+2) собрать комплексный обед путем добавления "id" комплексного обеда в complex_dinner.
+3) установить дату показа этого меню.
+''',
+    request_body=request_for_create_menu,
+    responses={
+        '201': openapi.Response('Создано', MenuSerializer),
         '400': 'Неверный формат запроса'
     }
 )

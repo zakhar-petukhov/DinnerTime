@@ -3,8 +3,8 @@ import json
 import pytest
 from django.urls import reverse
 
-from apps.authentication.utils import create_user_account
 from apps.users.models import User
+from apps.users.utils import create_user_account
 
 
 @pytest.mark.django_db
@@ -17,13 +17,13 @@ class TestAuthenticationView:
             create_user_account(phone=phone, first_name='Тест', last_name="Тестовов",
                                 email='test@protonmail.com', password='test', username='test')
 
-    def get_authentication(self, client):
+    def get_authentication(self, client, username='89313147222', password='test'):
         url = reverse('AUTHENTICATION:authentication-login')
         self.create_user()
 
         data = {
-            'username': '89313147222',
-            'password': 'test',
+            'username': username,
+            'password': password,
         }
         request = client.post(url, data=data, content_type='application/json')
         user_data = json.loads(request.content)
@@ -58,3 +58,30 @@ class TestAuthenticationView:
                              HTTP_AUTHORIZATION=f'Token {user_data["auth_token"]}')
 
         assert request.status_code == 202
+
+    def test_error_change_password(self, client):
+        response, user_data = self.get_authentication(client)
+        url = reverse('AUTHENTICATION:authentication-password-change')
+        data = {
+            'current_password': 'abrakadabra',
+            'new_password': 'TEST',
+        }
+
+        request = client.put(url, data=data, content_type='application/json',
+                             HTTP_AUTHORIZATION=f'Token {user_data["auth_token"]}')
+        response_change_password = json.loads(request.content)
+
+        assert request.status_code == 400
+        assert response_change_password['current_password'][0] == 'Текущий пароль не совпадает'
+
+    def test_error_login_username(self, client):
+        request, invalid_username = self.get_authentication(client, username='hello_people@mail.ru', password='TEST')
+
+        assert request.status_code == 400
+        assert invalid_username[0] == "Некорректные учётные данные. Пожалуйста, попробуйте ещё раз"
+
+    def test_error_login_password(self, client):
+        request, invalid_password = self.get_authentication(client, password='abrakadabra')
+
+        assert request.status_code == 400
+        assert invalid_password[0] == "Некорректные учётные данные. Пожалуйста, попробуйте ещё раз"

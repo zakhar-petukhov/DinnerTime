@@ -10,10 +10,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from apps.authentication.utils import create_user_account, generate_random_password, \
-    create_ref_link_for_update_auth_data
 from apps.users.permissions import IsCompanyAuthenticated
 from apps.users.serializers import *
+from apps.users.utils import *
 from apps.utils.func_for_send_message import send_message_for_change_auth_data_client
 
 User = get_user_model()
@@ -122,7 +121,7 @@ class DepartmentViewSet(GenericViewSet, mixins.ListModelMixin):
         parent = request.user
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.validated_data.update(generate_random_password())
+        serializer.validated_data.update(generate_random_password_username())
 
         user = create_user_account(parent=parent, **serializer.validated_data)
         upid = create_ref_link_for_update_auth_data(obj=user)

@@ -1,3 +1,4 @@
+from django.contrib.auth import logout
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.decorators import method_decorator
 from drf_yasg import openapi
@@ -9,7 +10,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from apps.authentication.utils import logout
 from apps.users.serializers import EmptySerializer
 from apps.utils.models import ReferralLink
 from .serializers import *
@@ -62,6 +62,8 @@ class AuthViewSet(GenericViewSet):
 
     @action(methods=['GET'], detail=False, permission_classes=[IsAuthenticated, ])
     def logout(self, request):
+        user = getattr(request, 'user', None)
+        Token.objects.get(user=user).delete()
         logout(request)
         data = {'success': 'Успешный выход из системы'}
         return Response(data=data, status=status.HTTP_200_OK)

@@ -1,4 +1,5 @@
 from django.contrib.auth import password_validation
+from phonenumber_field.phonenumber import PhoneNumber
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
@@ -52,9 +53,10 @@ class ChangeRegAuthDataSerializer(serializers.ModelSerializer):
     """
 
     password = serializers.CharField(required=True)
+    phone = serializers.CharField(allow_blank=True, allow_null=True, required=False)
 
-    def validate_phone(self, phone_number):
-        phone = User().get_phone_number(phone_number)
+    def validate_phone(self, value):
+        phone = PhoneNumber.from_string(phone_number=value, region='RU').as_e164
         return phone
 
     class Meta:

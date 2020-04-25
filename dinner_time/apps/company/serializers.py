@@ -1,3 +1,4 @@
+from phonenumber_field.phonenumber import PhoneNumber
 from rest_framework import serializers
 
 from apps.company.models import Department, Company
@@ -41,7 +42,7 @@ class CompanySerializer(serializers.ModelSerializer):
         return serializer.data
 
     def validate_phone(self, phone_number):
-        phone = User().get_phone_number(phone_number)
+        phone = PhoneNumber.from_string(phone_number=phone_number, region='RU').as_e164
         return phone
 
     class Meta:

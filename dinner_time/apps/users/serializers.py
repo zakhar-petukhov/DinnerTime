@@ -4,6 +4,7 @@ from datetime import datetime
 import pytz
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from phonenumber_field.phonenumber import PhoneNumber
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SkipField, set_value
@@ -19,9 +20,10 @@ class UserCreateSerializer(serializers.ModelSerializer):
     """
     Serializer for create user
     """
+    phone = serializers.CharField(allow_blank=True, allow_null=True, required=False)
 
-    def validate_phone(self, phone_number):
-        phone = User().get_phone_number(phone_number)
+    def validate_phone(self, value):
+        phone = PhoneNumber.from_string(phone_number=value, region='RU').as_e164
         return phone
 
     class Meta:
@@ -36,7 +38,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
     total_number_users = serializers.SerializerMethodField('get_total_number_users')
 
     def get_total_number_users(self, obj):
-        return len(User.objects.filter(department=obj.id))
+        return User.objects.filter(department=obj.id).count()
 
     class Meta:
         model = Department

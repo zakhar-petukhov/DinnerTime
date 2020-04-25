@@ -12,10 +12,9 @@ from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView, g
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
-from apps.authentication.utils import create_user_account, generate_random_password, \
-    create_ref_link_for_update_auth_data
 from apps.company.serializers import *
 from apps.users.models import User
+from apps.users.utils import *
 from apps.utils.func_for_send_message import send_message_for_change_auth_data_company
 
 
@@ -35,7 +34,7 @@ class CreateCompanyView(CreateAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.validated_data.update(generate_random_password())
+        serializer.validated_data.update(generate_random_password_username())
         company = create_user_account(**serializer.validated_data)
 
         upid = create_ref_link_for_update_auth_data(obj=company)

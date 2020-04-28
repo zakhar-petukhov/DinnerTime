@@ -8,7 +8,6 @@ app_name = "USERS"
 
 router = routers.DefaultRouter()
 router.register(r'user', UserViewSet, base_name='user')
-router.register(r'department', DepartmentViewSet, base_name='department')
 
 urlpatterns = [
     path('ref/<str:referral_upid>/change_auth/', UserChangeRegAuthDataView.as_view(), name='user_change_auth_ref'),

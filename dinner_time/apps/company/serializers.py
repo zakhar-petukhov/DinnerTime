@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from apps.company.models import Department, Company
 from apps.users.models import User
-from apps.users.serializers import DepartmentSerializer, UserSerializer
+from apps.users.serializers import UserSerializer
 
 
 class CompanyDetailSerializer(serializers.ModelSerializer):
@@ -16,6 +16,21 @@ class CompanyDetailSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'company_name', 'full_address', 'inn', 'kpp', 'ogrn', 'registration_date', 'bank_name',
             'bik', 'corporate_account', 'settlement_account')
+
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    """
+    Serializer for department. Used how main serializer and for create department.
+    """
+
+    total_number_users = serializers.SerializerMethodField('get_total_number_users')
+
+    def get_total_number_users(self, obj):
+        return User.objects.filter(company_data=Company.objects.get(company_department=obj.id)).count()
+
+    class Meta:
+        model = Department
+        fields = ['id', 'name', 'company', 'total_number_users']
 
 
 class CompanyGetSerializer(serializers.ModelSerializer):

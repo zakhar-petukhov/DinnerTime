@@ -11,8 +11,6 @@ from rest_framework.fields import SkipField, set_value
 from rest_framework.relations import PKOnlyObject
 from rest_framework.settings import api_settings
 
-from apps.company.models import Department
-
 User = get_user_model()
 
 
@@ -28,33 +26,18 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'middle_name', 'phone', 'email', 'department']
-
-
-class DepartmentSerializer(serializers.ModelSerializer):
-    """
-    Serializer for department. Used how main serializer and for create department.
-    """
-    total_number_users = serializers.SerializerMethodField('get_total_number_users')
-
-    def get_total_number_users(self, obj):
-        return User.objects.filter(department=obj.id).count()
-
-    class Meta:
-        model = Department
-        fields = ['id', 'name', 'company', 'total_number_users']
+        fields = ['id', 'first_name', 'last_name', 'middle_name', 'phone', 'email']
 
 
 class UserSerializer(serializers.ModelSerializer):
     """
     Main user serializer for get information
     """
-    department = DepartmentSerializer()
 
     class Meta:
         model = User
         fields = ['id', 'last_login', 'is_superuser', 'is_staff', 'is_active', 'date_joined', 'first_name',
-                  'last_name', 'middle_name', 'phone', 'email', 'email_verified', 'department', 'is_blocked',
+                  'last_name', 'middle_name', 'phone', 'email', 'email_verified', 'is_blocked',
                   'block_date', 'company_data', 'create_date', 'update_date', 'lft', 'rght', 'tree_id', 'level',
                   'parent', 'groups', 'user_permissions']
 
@@ -129,7 +112,7 @@ class UserChangeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'middle_name', 'email', 'department', 'is_blocked']
+        fields = ['id', 'first_name', 'last_name', 'middle_name', 'email', 'is_blocked']
 
 
 class EmptySerializer(serializers.Serializer):

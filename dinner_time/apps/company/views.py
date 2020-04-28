@@ -21,14 +21,14 @@ from apps.utils.func_for_send_message import send_message_for_change_auth_data_c
 @method_decorator(name='post', decorator=swagger_auto_schema(
     operation_summary='Создание компании',
     responses={
-        '201': openapi.Response('Создано', CompanySerializer),
+        '201': openapi.Response('Создано', CompanyCreateSerializer),
         '400': 'Неверный формат запроса'
     }
 )
                   )
 class CreateCompanyView(CreateAPIView):
     queryset = User.objects.all()
-    serializer_class = CompanySerializer
+    serializer_class = CompanyCreateSerializer
     permission_classes = [IsAdminUser]
 
     def post(self, request, *args, **kwargs):
@@ -54,14 +54,14 @@ class CreateCompanyView(CreateAPIView):
     operation_summary='Просмотр всех компаний',
     operation_description='Просмотр всех компаний. Есть возможность отфильтровать по названию',
     responses={
-        '200': openapi.Response('Успешно', CompanySerializer),
+        '200': openapi.Response('Успешно', CompanyGetSerializer),
         '400': 'Неверный формат запроса'
     }
 )
                   )
 class AllCompaniesView(ListAPIView):
     queryset = User.objects.filter(company_data__isnull=False, is_active=True)
-    serializer_class = CompanySerializer
+    serializer_class = CompanyGetSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['company_data__company_name']
     permission_classes = [IsAdminUser]
@@ -72,18 +72,18 @@ class AllCompaniesView(ListAPIView):
     operation_description='''Есть возможность полностью посмотореть данные о компании \
 (сколько человек, какие созданы отделы)''',
     responses={
-        '200': openapi.Response('Успешно', CompanySerializer),
+        '200': openapi.Response('Успешно', CompanyGetSerializer),
         '400': 'Неверный формат запроса'
     }
 )
                   )
 class CompanyDetailView(ListAPIView):
-    serializer_class = CompanySerializer
+    serializer_class = CompanyGetSerializer
     permission_classes = [IsAdminUser]
 
     def get_queryset(self):
         company_id = self.kwargs.get('company_id')
-        return User.objects.filter(company_data=company_id)
+        return User.objects.filter(id=company_id, company_data__isnull=False)
 
 
 @method_decorator(name='put', decorator=swagger_auto_schema(
@@ -95,21 +95,20 @@ class CompanyDetailView(ListAPIView):
 3) Блокировка компании {"is_block": true} ---> {"is_block": false}
 4) Удаление компании {"is_active": false} - компания переводится в статус неактивна, но из базы данных не удаляется
 ''',
-    request_body=CompanySerializer,
+    request_body=CompanyGetSerializer,
     responses={
-        '200': openapi.Response('Успешно', CompanySerializer),
+        '200': openapi.Response('Успешно', CompanyGetSerializer),
         '400': 'Неверный формат запроса'
     }
 )
                   )
 class CompanyChangeDetailView(UpdateAPIView):
-    serializer_class = CompanySerializer
+    serializer_class = CompanyGetSerializer
     permission_classes = [IsAdminUser]
 
     def get_object(self):
         company_id = self.kwargs.get("company_id")
-        obj = get_object_or_404(User, company_data=company_id)
-        return obj
+        return get_object_or_404(User, id=company_id, company_data__isnull=False)
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -117,7 +116,7 @@ class CompanyChangeDetailView(UpdateAPIView):
         is_blocked = request.data.pop('is_blocked', None)
 
         if company_data:
-            company = Company.objects.filter(company_user=instance).update(**company_data)
+            Company.objects.filter(company_user=instance).update(**company_data)
 
         if is_blocked in [True, False]:
             instance.is_blocked = is_blocked

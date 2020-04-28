@@ -18,9 +18,9 @@ class CompanyDetailSerializer(serializers.ModelSerializer):
             'bik', 'corporate_account', 'settlement_account')
 
 
-class CompanySerializer(serializers.ModelSerializer):
+class CompanyGetSerializer(serializers.ModelSerializer):
     """
-    Main serializer for company
+    A serializer for get all company
     """
 
     all_person = serializers.SerializerMethodField('get_all_person', label='Все сотрудники')
@@ -41,11 +41,25 @@ class CompanySerializer(serializers.ModelSerializer):
         serializer = DepartmentSerializer(instance=qs, many=True)
         return serializer.data
 
-    def validate_phone(self, phone_number):
-        phone = PhoneNumber.from_string(phone_number=phone_number, region='RU').as_e164
+    class Meta:
+        model = User
+        fields = ['id', 'company_data', 'first_name', 'last_name', 'middle_name', 'phone', 'email', 'is_blocked',
+                  'count_person', 'all_person', 'department', 'is_active']
+
+
+class CompanyCreateSerializer(serializers.ModelSerializer):
+    """
+    A serializer for create company
+    """
+
+    phone = serializers.CharField(allow_blank=True, allow_null=True, required=False)
+    company_data = CompanyDetailSerializer(required=False)
+
+    def validate_phone(self, value):
+        phone = PhoneNumber.from_string(phone_number=value, region='RU').as_e164
         return phone
 
     class Meta:
         model = User
         fields = ['id', 'company_data', 'first_name', 'last_name', 'middle_name', 'phone', 'email', 'is_blocked',
-                  'count_person', 'all_person', 'department', 'is_active']
+                  'is_active']

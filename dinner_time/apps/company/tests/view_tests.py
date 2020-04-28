@@ -73,3 +73,31 @@ class TestCompanyView:
         assert response.status_code == 200
         assert company_data['company_data']['company_name'] == "ООО Тестик"
         assert company_data['is_blocked'] is True
+
+
+@pytest.mark.django_db
+class TestDepartmentView:
+    def test_department_create(self, api_client, get_or_create_token_company):
+        url = reverse('COMPANY:department-create-department')
+        api_client.credentials(HTTP_AUTHORIZATION='Token ' + get_or_create_token_company.key)
+
+        data = {
+            "name": "IT отдел"
+        }
+
+        response = api_client.post(url, data=json.dumps(data), content_type='application/json')
+        department_data = json.loads(response.content)
+
+        assert response.status_code == 201
+        assert department_data['name'] == "IT отдел"
+
+    def test_list_all_department(self, api_client, get_or_create_token_company):
+        url = reverse('COMPANY:department-list')
+        api_client.credentials(HTTP_AUTHORIZATION='Token ' + get_or_create_token_company.key)
+        response = api_client.get(path=url)
+
+        assert response.status_code == 200
+
+    # def test_add_employee_into_department(self, api_client, get_or_create_token_company):
+    #     url = reverse('COMPANY:department-add-user')
+    #     api_client.credentials(HTTP_AUTHORIZATION='Token ' + get_or_create_token_company.key)

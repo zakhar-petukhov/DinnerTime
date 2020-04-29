@@ -24,13 +24,19 @@ class DepartmentSerializer(serializers.ModelSerializer):
     """
 
     total_number_users = serializers.SerializerMethodField('get_total_number_users')
+    users = serializers.SerializerMethodField('get_users')
+
+    def get_users(self, obj):
+        users = UserSerializer(data=User.objects.filter(department=obj.id), many=True)
+        users.is_valid()
+        return users.data
 
     def get_total_number_users(self, obj):
-        return User.objects.filter(company_data=Company.objects.get(company_department=obj.id)).count()
+        return User.objects.filter(department=obj.id).count()
 
     class Meta:
         model = Department
-        fields = ['id', 'name', 'company', 'total_number_users']
+        fields = ['id', 'name', 'company', 'total_number_users', 'users']
 
 
 class CompanyGetSerializer(serializers.ModelSerializer):

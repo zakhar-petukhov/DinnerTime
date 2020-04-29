@@ -1,13 +1,9 @@
 from django.urls import path
-from rest_framework import routers
 
 from apps.authentication.views import UserChangeRegAuthDataView
 from apps.company.views import *
 
 app_name = "COMPANY"
-
-router = routers.DefaultRouter()
-router.register(r'department', DepartmentViewSet, base_name='department')
 
 urlpatterns = [
     path('create/', CreateCompanyView.as_view(), name='create_company'),
@@ -18,5 +14,9 @@ urlpatterns = [
     path('delete/<company_id>/', CompanyChangeDetailView.as_view(), name='delete_company'),
     path('ref/<str:referral_upid>/change_auth/', UserChangeRegAuthDataView.as_view(), name='company_change_auth_ref'),
 
-    *router.urls
+    path('department/create_department/', DepartmentViewSet.as_view({'post': 'create'}), name='department_create'),
+    path('department/list/', DepartmentViewSet.as_view({'get': 'list'}), name='department_list'),
+    path('department/detail/<department_id>/', DepartmentViewSet.as_view({'get': 'list'}), name='department_detail'),
+    path('department/add_user/', DepartmentCreateUserViewSet.as_view({'post': 'create'}),
+         name='department_add_user'),
 ]

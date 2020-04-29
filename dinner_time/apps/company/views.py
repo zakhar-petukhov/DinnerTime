@@ -2,27 +2,22 @@ from datetime import datetime
 
 import pytz
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
-from django.core.mail import EmailMessage
 from django.utils.decorators import method_decorator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import filters, mixins
-from rest_framework import status
-from rest_framework.decorators import action
+from rest_framework import filters
 from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView, get_object_or_404
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import ModelViewSet
 
 from apps.company.serializers import *
 from apps.company.serializers import DepartmentSerializer
+from apps.company.utils import create_user_or_company
 from apps.users.models import User
 from apps.users.permissions import IsCompanyAuthenticated
-from apps.users.serializers import UserCreateSerializer, EmptySerializer
+from apps.users.serializers import UserCreateSerializer
 from apps.users.utils import *
-from apps.utils.func_for_send_message import send_message_for_change_auth_data_client
-from apps.utils.func_for_send_message import send_message_for_change_auth_data_company
 
 
 @method_decorator(name='post', decorator=swagger_auto_schema(
@@ -38,23 +33,12 @@ class CreateCompanyView(CreateAPIView):
     serializer_class = CompanyCreateSerializer
     permission_classes = [IsAdminUser]
 
-    def post(self, request, *args, **kwargs):
+    # Create company and send message to email manager company for change password
+    def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.validated_data.update(generate_random_password_username())
-        company = create_user_account(**serializer.validated_data)
-
-        upid = create_ref_link_for_update_auth_data(obj=company)
-        headers = self.get_success_headers(serializer.data)
-
-        url = settings.URL_FOR_CHANGE_AUTH_DATA.format(upid)
-        header, body = send_message_for_change_auth_data_company(url=url,
-                                                                 company_name=serializer.data['company_data'].get(
-                                                                     'company_name'))
-        email = EmailMessage(header, body, to=[serializer.data.get('email')])
-        email.send()
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        company_name = serializer.data['company_data'].get('company_name')
+        return create_user_or_company(company_name=company_name, serializer=serializer)
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
@@ -137,17 +121,46 @@ class CompanyChangeDetailView(UpdateAPIView):
         return Response(serializer.data)
 
 
-@method_decorator(name='create_department', decorator=swagger_auto_schema(
+@method_decorator(name='create', decorator=swagger_auto_schema(
     operation_summary='Создание отдела',
+    operation_description='''
+В поле "company" передаем "id" компании, к которой привязываем этот отдел.
+''',
     responses={
         '201': openapi.Response('Создано', DepartmentSerializer),
         '400': 'Неверный формат запроса'
     }
 )
                   )
-@method_decorator(name='add_user', decorator=swagger_auto_schema(
+@method_decorator(name='list', decorator=swagger_auto_schema(
+    operation_summary='Просмотр отделов.',
+    operation_description='''
+Если передаем "department_id" в заголовке, то нам доступен только один отдел и его сотрудники, если не передаем, \
+то получаем все отделы.
+''',
+    responses={
+        '200': openapi.Response('Успешно', DepartmentSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
+class DepartmentViewSet(ModelViewSet):
+    permission_classes = [IsCompanyAuthenticated]
+    serializer_class = DepartmentSerializer
+
+    def get_queryset(self):
+        department_id = self.kwargs.get('department_id', None)
+        employee_id = self.request.user.id
+
+        if department_id:
+            return Department.objects.filter(id=department_id)
+
+        return Department.objects.filter(company_id__company_user=User.objects.get(id=employee_id))
+
+
+@method_decorator(name='create', decorator=swagger_auto_schema(
     operation_summary='Добавление сотрудников в отделы',
-    operation_description='''Создается сотрудник и добавляется в отдел. 
+    operation_description='''Создается сотрудник и добавляется в отдел.
 Сотруднику генерируется базовый логин и пароль и отправляется на почту сообщение о смене, после перехода по \
 уникальной ссылке, сотрудник ставит свой логин и пароль''',
     responses={
@@ -156,66 +169,14 @@ class CompanyChangeDetailView(UpdateAPIView):
     }
 )
                   )
-@method_decorator(name='list', decorator=swagger_auto_schema(
-    operation_summary='Просмотр всех отделов',
-    operation_description='Показываются все отделы вместе с количеством сотрудников',
-    responses={
-        '200': openapi.Response('Успешно', DepartmentSerializer),
-        '400': 'Неверный формат запроса'
-    }
-)
-                  )
-class DepartmentViewSet(GenericViewSet, mixins.ListModelMixin):
+class DepartmentCreateUserViewSet(ModelViewSet):
     permission_classes = [IsCompanyAuthenticated]
-    serializer_class = EmptySerializer
-    serializer_classes = {
-        'create_department': DepartmentSerializer,
-        'add_user': UserCreateSerializer,
-        'list': DepartmentSerializer,
-    }
-
-    # Create department
-    @action(methods=['POST'], detail=False)
-    def create_department(self, request, *args, **kwargs):
-        company = get_object_or_404(User, id=request.user.id, company_data__isnull=False)
-        request.data['company'] = company.company_data.id
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    serializer_class = UserCreateSerializer
 
     # Create, add user into department and send message for change password, and login on the mail
-    @action(methods=['POST'], detail=False)
-    def add_user(self, request):
+    def create(self, request, *args, **kwargs):
         parent = request.user
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.validated_data.update(generate_random_password_username())
-
-        user = create_user_account(parent=parent, **serializer.validated_data)
-        upid = create_ref_link_for_update_auth_data(obj=user)
-
-        url = settings.URL_FOR_CHANGE_AUTH_DATA.format(upid)
-        header, body = send_message_for_change_auth_data_client(url=url,
-                                                                company_name=parent.company_data.company_name)
-        email = EmailMessage(header, body, to=[serializer.data.get('email')])
-        email.send()
-
-        return Response(status=status.HTTP_202_ACCEPTED)
-
-    def get_serializer_class(self):
-        if not isinstance(self.serializer_classes, dict):
-            raise ImproperlyConfigured("serializer_classes should be a dict mapping.")
-
-        if self.action in self.serializer_classes.keys():
-            return self.serializer_classes[self.action]
-        return super().get_serializer_class()
-
-    def get_object(self):
-        departament_id = self.kwargs["pk"]
-        obj = get_object_or_404(Department, pk=departament_id)
-        return obj
-
-    def get_queryset(self):
-        employee_id = self.request.user.id
-        return Department.objects.filter(company_id__company_user=User.objects.get(id=employee_id))
+        return create_user_or_company(company_name=parent.company_data.company_name, serializer=serializer,
+                                      parent=parent)

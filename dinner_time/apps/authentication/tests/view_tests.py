@@ -4,9 +4,9 @@ import pytest
 from django.urls import reverse
 
 
-def get_authorization(api_client, get_or_create_token, is_error=False, username='89313147222', password='test'):
+def get_authorization(api_client, get_token_user, is_error=False, username='89313147222', password='test'):
     url = reverse('AUTHENTICATION:authentication-login')
-    token = get_or_create_token
+    token = get_token_user
 
     data = {
         "username": username,
@@ -28,12 +28,12 @@ def get_authorization(api_client, get_or_create_token, is_error=False, username=
 
 @pytest.mark.django_db
 class TestAuthenticationView:
-    def test_login(self, api_client, get_or_create_token):
-        get_authorization(api_client, get_or_create_token)
+    def test_login(self, api_client, get_token_user):
+        get_authorization(api_client, get_token_user)
 
-    def test_logout(self, api_client, get_or_create_token):
+    def test_logout(self, api_client, get_token_user):
         url = reverse('AUTHENTICATION:authentication-logout')
-        token = get_or_create_token
+        token = get_token_user
         api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
 
         response = api_client.get(url)
@@ -42,9 +42,9 @@ class TestAuthenticationView:
         assert response.status_code == 200
         assert response_logout['success'] == 'Успешный выход из системы'
 
-    def test_change_password(self, api_client, get_or_create_token):
+    def test_change_password(self, api_client, get_token_user):
         url = reverse('AUTHENTICATION:authentication-password-change')
-        token = get_or_create_token
+        token = get_token_user
         api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
 
         data = {
@@ -56,9 +56,9 @@ class TestAuthenticationView:
 
         assert response.status_code == 202
 
-    def test_error_change_password(self, api_client, get_or_create_token):
+    def test_error_change_password(self, api_client, get_token_user):
         url = reverse('AUTHENTICATION:authentication-password-change')
-        token = get_or_create_token
+        token = get_token_user
         api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
 
         data = {
@@ -72,8 +72,8 @@ class TestAuthenticationView:
         assert response.status_code == 400
         assert response_change_password['current_password'][0] == 'Текущий пароль не совпадает'
 
-    def test_error_login_username(self, api_client, get_or_create_token):
-        get_authorization(api_client, get_or_create_token, is_error=True, username='hello_people@mail.ru')
+    def test_error_login_username(self, api_client, get_token_user):
+        get_authorization(api_client, get_token_user, is_error=True, username='hello_people@mail.ru')
 
-    def test_error_login_password(self, api_client, get_or_create_token):
-        get_authorization(api_client, get_or_create_token, is_error=True, password='abrakadabra')
+    def test_error_login_password(self, api_client, get_token_user):
+        get_authorization(api_client, get_token_user, is_error=True, password='abrakadabra')

@@ -6,14 +6,14 @@ from django.urls import reverse
 
 def get_authorization(api_client, get_token_user, is_error=False, username='89313147222', password='test'):
     url = reverse('AUTHENTICATION:authentication-login')
-    token = get_token_user
+    token_user, user = get_token_user
 
     data = {
         "username": username,
         "password": password
     }
 
-    api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+    api_client.credentials(HTTP_AUTHORIZATION='Token ' + token_user.key)
     response = api_client.post(url, data=json.dumps(data), content_type='application/json')
     user_data = json.loads(response.content)
 
@@ -33,8 +33,8 @@ class TestAuthenticationView:
 
     def test_logout(self, api_client, get_token_user):
         url = reverse('AUTHENTICATION:authentication-logout')
-        token = get_token_user
-        api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        token_user, user = get_token_user
+        api_client.credentials(HTTP_AUTHORIZATION='Token ' + token_user.key)
 
         response = api_client.get(url)
         response_logout = json.loads(response.content)
@@ -44,8 +44,8 @@ class TestAuthenticationView:
 
     def test_change_password(self, api_client, get_token_user):
         url = reverse('AUTHENTICATION:authentication-password-change')
-        token = get_token_user
-        api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        token_user, user = get_token_user
+        api_client.credentials(HTTP_AUTHORIZATION='Token ' + token_user.key)
 
         data = {
             "current_password": "test",
@@ -58,8 +58,8 @@ class TestAuthenticationView:
 
     def test_error_change_password(self, api_client, get_token_user):
         url = reverse('AUTHENTICATION:authentication-password-change')
-        token = get_token_user
-        api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        token_user, user = get_token_user
+        api_client.credentials(HTTP_AUTHORIZATION='Token ' + token_user.key)
 
         data = {
             "current_password": "abrakadabra",

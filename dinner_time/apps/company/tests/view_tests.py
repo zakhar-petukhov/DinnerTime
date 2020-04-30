@@ -8,7 +8,8 @@ from django.urls import reverse
 class TestCompanyView:
     def test_company_create(self, api_client, get_token_user):
         url = reverse('COMPANY:create_company')
-        api_client.credentials(HTTP_AUTHORIZATION='Token ' + get_token_user.key)
+        token_user, user = get_token_user
+        api_client.credentials(HTTP_AUTHORIZATION='Token ' + token_user.key)
 
         data = {
             "company_data": {
@@ -30,7 +31,8 @@ class TestCompanyView:
     def test_list_all_company(self, api_client, get_token_user, create_company):
         create_company()
         url = reverse('COMPANY:all_companies')
-        api_client.credentials(HTTP_AUTHORIZATION='Token ' + get_token_user.key)
+        token_user, user = get_token_user
+        api_client.credentials(HTTP_AUTHORIZATION='Token ' + token_user.key)
 
         response = api_client.get(path=url)
         company_data = json.loads(response.content)
@@ -42,7 +44,8 @@ class TestCompanyView:
     def test_list_detail_company(self, api_client, get_token_user, create_company):
         company = create_company()
         url = reverse('COMPANY:detail_company', kwargs={'company_id': company.id})
-        api_client.credentials(HTTP_AUTHORIZATION='Token ' + get_token_user.key)
+        token_user, user = get_token_user
+        api_client.credentials(HTTP_AUTHORIZATION='Token ' + token_user.key)
 
         response = api_client.get(path=url)
         company_data = json.loads(response.content)
@@ -54,7 +57,8 @@ class TestCompanyView:
     def test_change_detail_company(self, api_client, get_token_user, create_company):
         company = create_company()
         url = reverse('COMPANY:change_detail_company', kwargs={'company_id': company.id})
-        api_client.credentials(HTTP_AUTHORIZATION='Token ' + get_token_user.key)
+        token_user, user = get_token_user
+        api_client.credentials(HTTP_AUTHORIZATION='Token ' + token_user.key)
 
         data = {
             "company_data": {

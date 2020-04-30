@@ -66,7 +66,7 @@ def get_token_user(db, create_user, create_company):
                        email='test@protonmail.com', username='test', password='test', is_superuser=True,
                        is_staff=True)
     token, _ = Token.objects.get_or_create(user=user)
-    return token
+    return token, user
 
 
 @pytest.fixture

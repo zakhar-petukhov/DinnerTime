@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'apps.company',
     'phonenumber_field',
     'config_models',
+    'django_extensions'
 ]
 
 MIDDLEWARE = [
@@ -168,6 +169,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json'
 }
 
 DATE_FORMAT = '%d.%m.%Y'

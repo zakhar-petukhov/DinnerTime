@@ -7,8 +7,11 @@ from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
+from apps.dinner.data_for_swagger import request_for_create_dinner
+from apps.dinner.models import Dinner
+from apps.dinner.serializers import DinnerSerializer
 from apps.users.permissions import IsCompanyAuthenticated
 from apps.users.serializers import *
 from apps.users.utils import *
@@ -61,3 +64,21 @@ class UserViewSet(GenericViewSet, mixins.UpdateModelMixin):
         if self.action in self.serializer_classes.keys():
             return self.serializer_classes[self.action]
         return super().get_serializer_class()
+
+
+@method_decorator(name='create', decorator=swagger_auto_schema(
+    operation_summary='Создание обеда',
+    request_body=request_for_create_dinner,
+    responses={
+        '201': openapi.Response('Создано', DinnerSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
+class UserCreateDinnerView(ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    queryset = Dinner.objects.all()
+    serializer_class = DinnerSerializer
+
+    def get_object(self):
+        return get_object_or_404(Dinner, id=self.kwargs.get("dish_id"))

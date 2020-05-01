@@ -35,10 +35,21 @@ request_for_update_category_dish = Schema(type=TYPE_OBJECT,
 request_for_create_menu = Schema(type=TYPE_OBJECT,
                                  properties={
                                      'dish': Schema(type=TYPE_ARRAY, title='Блюда',
-                                                    items=Items(enum={'id': TYPE_INTEGER}, type=TYPE_STRING)),
+                                                    items=Items(enum={'id': TYPE_INTEGER,
+                                                                      'is_remove': TYPE_BOOLEAN}, type=TYPE_STRING)),
                                      'complex_dinner': Schema(type=TYPE_ARRAY, title='Комплексные обеды',
-                                                              items=Items(enum={'id': TYPE_INTEGER}, type=TYPE_STRING)),
+                                                              items=Items(enum={'id': TYPE_INTEGER,
+                                                                                'is_remove': TYPE_BOOLEAN},
+                                                                          type=TYPE_STRING)),
                                      'available_order_date': Schema(type=TYPE_STRING,
                                                                     format="date",
                                                                     title='Дата, на которую создано меню')
                                  })
+
+request_for_create_dinner = Schema(type=TYPE_OBJECT,
+                                   properties={
+                                       'dishes': Schema(type=TYPE_ARRAY, title='Блюда',
+                                                        items=Items(enum={'id': TYPE_INTEGER},
+                                                                    type=TYPE_STRING)),
+                                       'date_action_begin': Schema(type=TYPE_STRING, title='Заказ на дату')
+                                   })

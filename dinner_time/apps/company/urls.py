@@ -19,4 +19,7 @@ urlpatterns = [
     path('department/detail/<department_id>/', DepartmentViewSet.as_view({'get': 'list'}), name='department_detail'),
     path('department/add_user/', DepartmentCreateUserViewSet.as_view({'post': 'create'}),
          name='department_add_user'),
+
+    path('check/employee_order/', DinnerCheckOrderViewSet.as_view({'get': 'list'}), name='check_employee_order'),
+
 ]

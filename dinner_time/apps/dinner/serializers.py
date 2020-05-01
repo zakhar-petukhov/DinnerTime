@@ -1,7 +1,9 @@
 from rest_framework import serializers
 
+from apps.company.serializers import CompanyDetailSerializer
 from apps.dinner.models import *
 from apps.dinner.utils import get_additional_dish, get_additional_dish_for_complex, get_day_menu
+from apps.users.serializers import UserSerializer
 from apps.utils.serializers import SettingsSerializer
 
 
@@ -143,3 +145,36 @@ class MenuSerializer(serializers.ModelSerializer):
         })
 
         return internal_value
+
+
+class DinnerSerializer(serializers.ModelSerializer):
+    """
+    Serializer for dinner
+    """
+
+    dishes = DishSerializer(many=True)
+    user = UserSerializer(required=False)
+    company = CompanyDetailSerializer(required=False)
+
+    class Meta:
+        model = Dinner
+        fields = ['id', 'dishes', 'user', 'company', 'date_action_begin', 'status']
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        company_id = request.user.parent if request.user.parent else request.user.id
+        user_id = request.user
+
+        data = {
+            "user": user_id,
+            "company": User.objects.get(id=company_id).company_data
+        }
+
+        validated_data.update(data)
+        dishes = validated_data.pop("dishes", [])
+        dinner = Dinner.objects.create(**validated_data)
+
+        for dish in dishes:
+            dinner.dishes.add(dish["id"])
+
+        return dinner

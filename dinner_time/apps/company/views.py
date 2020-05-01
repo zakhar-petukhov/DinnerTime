@@ -14,6 +14,8 @@ from rest_framework.viewsets import ModelViewSet
 from apps.company.serializers import *
 from apps.company.serializers import DepartmentSerializer
 from apps.company.utils import create_user_or_company
+from apps.dinner.models import Dinner
+from apps.dinner.serializers import DinnerSerializer
 from apps.users.models import User
 from apps.users.permissions import IsCompanyAuthenticated
 from apps.users.serializers import UserCreateSerializer
@@ -180,3 +182,17 @@ class DepartmentCreateUserViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
         return create_user_or_company(company_name=parent.company_data.company_name, serializer=serializer,
                                       parent=parent)
+
+
+@method_decorator(name='list', decorator=swagger_auto_schema(
+    operation_summary='Просмотр всех заказов от сотрудников.',
+    responses={
+        '200': openapi.Response('Успешно', DinnerSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
+class DinnerCheckOrderViewSet(ModelViewSet):
+    permission_classes = [IsCompanyAuthenticated]
+    serializer_class = DinnerSerializer
+    queryset = Dinner.objects.all()

@@ -11,5 +11,7 @@ router.register(r'user', UserViewSet, base_name='user')
 
 urlpatterns = [
     path('ref/<str:referral_upid>/change_auth/', UserChangeRegAuthDataView.as_view(), name='user_change_auth_ref'),
+    path('create/dinner/', UserCreateDinnerView.as_view({'post': 'create'}), name='user_add_dish'),
+
     *router.urls
 ]

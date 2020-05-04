@@ -31,6 +31,10 @@ class Dinner(Model):
     ]
 
     dishes = ManyToManyField('dinner.Dish', related_name='dinner_dishes', verbose_name='Блюдо', blank=True)
+    user = ForeignKey('users.User', on_delete=PROTECT, related_name='dinner_user', verbose_name='Заказчик',
+                      blank=True, null=True)
+    company = ForeignKey('company.Company', on_delete=PROTECT, related_name='dinner_company', verbose_name='Компания',
+                         blank=True, null=True)
 
     date_action_begin = DateField(null=True, blank=True, verbose_name='Заказ на дату')
     status = SmallIntegerField(choices=STATUSES, blank=True, default=IN_PROCESSING, verbose_name='Статус')
@@ -38,14 +42,9 @@ class Dinner(Model):
     create_date = DateTimeField(auto_now_add=True, auto_now=False, null=True, blank=True, verbose_name='Создано')
     update_date = DateTimeField(auto_now_add=False, auto_now=True, verbose_name='Обновлено')
 
-    is_complex = BooleanField(default=False, verbose_name='Комплексный обед')
-    complex_cost = FloatField(blank=True, null=True, verbose_name='Цена за комплексный обед')
-    available_complex_order_date = DateField(unique=True, null=True, blank=True,
-                                             verbose_name='Комлпексный обед доступен на дату')
-
     @property
     def full_cost(self):
-        cost = 0 or self.complex_cost
+        cost = 0
         if not cost:
             all_dinner = self.dishes.all()
             for obj in all_dinner:
@@ -122,7 +121,7 @@ class DayMenu(Model):
     available_order_date = DateField(unique=True, null=True, blank=True, verbose_name='Меню на день')
     close_order_time = ForeignKey('utils.Settings', on_delete=PROTECT, null=True, blank=True,
                                   verbose_name='Последний час заказа еды на день',
-                                  default=Settings.objects.get(enabled=True).id)
+                                  default=Settings.objects.filter(enabled=True).first())
 
     # Check whether this menu is available for ordering.
     @property

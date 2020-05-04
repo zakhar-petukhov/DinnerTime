@@ -13,11 +13,15 @@ def create_user_or_company(company_name, serializer, parent=None):
     user = create_user_account(parent=parent, **serializer.validated_data)
     upid = create_ref_link_for_update_auth_data(obj=user)
 
+    send_message(company_name, upid, serializer.data)
+
+    return Response(status=status.HTTP_201_CREATED)
+
+
+def send_message(company_name, upid, data):
     url = settings.URL_FOR_CHANGE_AUTH_DATA.format(upid)
 
     header, body = send_message_for_change_auth_data_client(url=url,
                                                             company_name=company_name)
-    email = EmailMessage(header, body, to=[serializer.data.get('email')])
+    email = EmailMessage(header, body, to=[data.get('email')])
     email.send()
-
-    return Response(status=status.HTTP_201_CREATED)

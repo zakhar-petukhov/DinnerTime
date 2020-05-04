@@ -11,7 +11,15 @@ from rest_framework.fields import SkipField, set_value
 from rest_framework.relations import PKOnlyObject
 from rest_framework.settings import api_settings
 
+from apps.users.models import Tariff
+
 User = get_user_model()
+
+
+class TariffSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tariff
+        fields = ['id', 'name', 'max_cost_day', 'description']
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -26,18 +34,19 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'middle_name', 'phone', 'email']
+        fields = ['id', 'first_name', 'last_name', 'middle_name', 'tariff', 'phone', 'email', 'department']
 
 
 class UserSerializer(serializers.ModelSerializer):
     """
     Main user serializer for get information
     """
+    tariff = TariffSerializer()
 
     class Meta:
         model = User
         fields = ['id', 'last_login', 'is_superuser', 'is_staff', 'is_active', 'date_joined', 'first_name',
-                  'last_name', 'middle_name', 'phone', 'email', 'email_verified', 'is_blocked',
+                  'last_name', 'middle_name', 'phone', 'email', 'tariff', 'department', 'email_verified', 'is_blocked',
                   'block_date', 'company_data', 'create_date', 'update_date', 'lft', 'rght', 'tree_id', 'level',
                   'parent', 'groups', 'user_permissions']
 
@@ -112,7 +121,7 @@ class UserChangeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'middle_name', 'email', 'is_blocked']
+        fields = ['id', 'first_name', 'last_name', 'middle_name', 'tariff', 'email', 'department', 'is_blocked']
 
 
 class EmptySerializer(serializers.Serializer):

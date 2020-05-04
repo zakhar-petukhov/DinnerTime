@@ -4,7 +4,7 @@ from rest_framework.test import APIClient
 
 from apps.company.models import Company, Department
 from apps.dinner.models import CategoryDish, Dish, ComplexDinner, DayMenu
-from apps.users.models import User
+from apps.users.models import User, Tariff
 from apps.utils.models import Settings
 
 
@@ -104,6 +104,20 @@ def create_complex_dish(django_user_model, get_token_company, create_dish):
         return complex_dinner
 
     return make_complex_dish
+
+
+@pytest.fixture
+def create_tariff(django_user_model, get_token_user):
+    def make_tariff():
+        data = {
+            "name": "Лайт",
+            "max_cost_day": 300,
+            "description": "Тупа чтобы шашлыка навернуть"
+        }
+
+        return Tariff.objects.create(**data)
+
+    return make_tariff
 
 
 @pytest.fixture

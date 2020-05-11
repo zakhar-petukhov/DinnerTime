@@ -78,3 +78,24 @@ class TestUserView:
 
         assert response.status_code == 200
         assert user_data[0]['name'] == "Лайт"
+
+    def test_invite_users(self, api_client, get_token_company, create_tariff):
+        token_company, company = get_token_company
+        url = reverse('USERS:invite_user')
+        api_client.credentials(HTTP_AUTHORIZATION='Token ' + token_company.key)
+
+        data = {
+            "tariff": create_tariff().id,
+            "emails": [
+                {
+                    "email": "zakharpetukhov@protonmail.com"
+                },
+                {
+                    "email": "zakharpetukhov01@gmail.com"
+                }
+            ]
+        }
+
+        response = api_client.post(url, data=json.dumps(data), content_type='application/json')
+
+        assert response.status_code == 201

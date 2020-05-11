@@ -3,7 +3,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from apps.company.models import Company, Department
-from apps.dinner.models import CategoryDish, Dish, ComplexDinner, DayMenu
+from apps.dinner.models import CategoryDish, Dish, ComplexDinner, DayMenu, Dinner, CompanyOrder
 from apps.users.models import User, Tariff
 from apps.utils.models import Settings
 
@@ -146,3 +146,20 @@ def get_token_company(db, create_company):
     company = create_company()
     token, _ = Token.objects.get_or_create(user=company)
     return token, company
+
+
+@pytest.fixture
+def create_company_order(db, get_token_company, get_token_user, create_dish):
+    def make_order():
+        token, company = get_token_company
+        token, user = get_token_user
+        dish = create_dish()
+        dinner = Dinner.objects.create(user=user, company=company.company_data)
+        dinner.dishes.add(dish)
+
+        company_order = CompanyOrder.objects.create(company=company)
+        company_order.dinners.add(dinner)
+
+        return company_order
+
+    return make_order

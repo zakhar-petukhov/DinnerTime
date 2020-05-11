@@ -127,3 +127,29 @@ class TestDepartmentView:
 
         assert response.status_code == 200
         assert department_data[0]['name'] == "Любители вкусняшек"
+
+    def test_get_company_history_order(self, api_client, get_token_company):
+        token, company = get_token_company
+        url = reverse('COMPANY:company_history_order')
+        api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        response = api_client.get(path=url)
+
+        assert response.status_code == 200
+
+    def test_get_check_employee_order(self, api_client, get_token_company):
+        token, company = get_token_company
+        url = reverse('COMPANY:check_employee_order')
+        api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        response = api_client.get(path=url)
+
+        assert response.status_code == 200
+
+    def test_get_detail_order(self, api_client, get_token_company, create_company_order):
+        token, company = get_token_company
+        url = reverse('COMPANY:company_history_order_detail', kwargs={'order_id': create_company_order().id})
+        api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        response = api_client.get(path=url)
+        order_data = json.loads(response.content)
+
+        assert response.status_code == 200
+        assert order_data[0]['dinners'][0]['dishes'][0]['name'] == 'Томатный суп'

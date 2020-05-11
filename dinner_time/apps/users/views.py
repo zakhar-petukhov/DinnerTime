@@ -145,6 +145,6 @@ class InviteUsersView(APIView):
             employee.update(generate_random_password_username())
             user = create_user_account(parent=parent, **employee)
             upid = create_ref_link_for_update_auth_data(obj=user)
-            send_message(company_name=parent.company_data.company_name, upid=upid, data=employee)
+            send_message(company_name=parent.company_data.company_name, upid=upid, data=employee, is_company=False)
 
         return HttpResponse(status=status.HTTP_201_CREATED)

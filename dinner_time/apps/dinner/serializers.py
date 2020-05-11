@@ -178,3 +178,15 @@ class DinnerSerializer(serializers.ModelSerializer):
             dinner.dishes.add(dish["id"])
 
         return dinner
+
+
+class DinnerHistoryOrder(serializers.ModelSerializer):
+    """
+    Serializer for get order dinner
+    """
+
+    dinners = DinnerSerializer(many=True)
+
+    class Meta:
+        model = CompanyOrder
+        fields = ['id', 'company', 'dinners', 'create_date']

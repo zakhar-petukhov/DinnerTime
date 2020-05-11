@@ -1,6 +1,7 @@
 from django.utils.decorators import method_decorator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import pagination
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import ModelViewSet
@@ -50,6 +51,7 @@ class DishViewSet(ModelViewSet):
     permission_classes = [AllowAny]
     queryset = Dish.objects.all()
     serializer_class = DishSerializer
+    pagination_class = pagination.LimitOffsetPagination
 
     def get_object(self):
         return get_object_or_404(Dish, id=self.kwargs.get("dish_id"))
@@ -85,6 +87,7 @@ class DishCategoryViewSet(ModelViewSet):
     permission_classes = [AllowAny]
     queryset = CategoryDish.objects.all()
     serializer_class = DishCategorySerializer
+    pagination_class = pagination.LimitOffsetPagination
 
     def get_object(self):
         return get_object_or_404(CategoryDish, id=self.kwargs.get("dish_category_id"))
@@ -132,6 +135,7 @@ class ComplexDinnerViewSet(ModelViewSet):
     permission_classes = [AllowAny]
     queryset = ComplexDinner.objects.all()
     serializer_class = ComplexDinnerSerializer
+    pagination_class = pagination.LimitOffsetPagination
 
     def get_object(self):
         return get_object_or_404(ComplexDinner, id=self.kwargs.get("complex_id"))

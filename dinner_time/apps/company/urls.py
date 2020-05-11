@@ -21,5 +21,7 @@ urlpatterns = [
          name='department_add_user'),
 
     path('check/employee_order/', DinnerCheckOrderViewSet.as_view({'get': 'list'}), name='check_employee_order'),
+    path('history/order/', CompanyHistoryOrder.as_view(), name='company_history_order'),
+    path('history/order/detail/<order_id>', CompanyHistoryOrder.as_view(), name='company_history_order_detail')
 
 ]

@@ -5,7 +5,7 @@ from django.conf import settings
 from django.utils.decorators import method_decorator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import filters
+from rest_framework import filters, pagination
 from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView, get_object_or_404
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
@@ -14,8 +14,8 @@ from rest_framework.viewsets import ModelViewSet
 from apps.company.serializers import *
 from apps.company.serializers import DepartmentSerializer
 from apps.company.utils import create_user_or_company
-from apps.dinner.models import Dinner
-from apps.dinner.serializers import DinnerSerializer
+from apps.dinner.models import Dinner, CompanyOrder
+from apps.dinner.serializers import DinnerSerializer, DinnerHistoryOrder
 from apps.users.models import User
 from apps.users.permissions import IsCompanyAuthenticated
 from apps.users.serializers import UserCreateSerializer
@@ -40,7 +40,7 @@ class CreateCompanyView(CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         company_name = serializer.data['company_data'].get('company_name')
-        return create_user_or_company(company_name=company_name, serializer=serializer)
+        return create_user_or_company(company_name=company_name, serializer=serializer, is_company=True)
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
@@ -58,6 +58,7 @@ class AllCompaniesView(ListAPIView):
     filter_backends = [filters.SearchFilter]
     search_fields = ['company_data__company_name']
     permission_classes = [IsAdminUser]
+    pagination_class = pagination.LimitOffsetPagination
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
@@ -195,4 +196,31 @@ class DepartmentCreateUserViewSet(ModelViewSet):
 class DinnerCheckOrderViewSet(ModelViewSet):
     permission_classes = [IsCompanyAuthenticated]
     serializer_class = DinnerSerializer
-    queryset = Dinner.objects.all()
+
+    def get_queryset(self):
+        company_id = self.request.user.id
+        return Dinner.objects.filter(company_id=company_id)
+
+
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    operation_summary='Просмотр историй заказов.',
+    operation_description='''Есть возможность просмотра всех заказов компании, а также посмотреть детально \
+только один заказ, путем передачи order_id.''',
+    responses={
+        '200': openapi.Response('Успешно', DinnerHistoryOrder),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
+class CompanyHistoryOrder(ListAPIView):
+    serializer_class = DinnerHistoryOrder
+    permission_classes = [IsCompanyAuthenticated]
+    pagination_class = pagination.LimitOffsetPagination
+
+    def get_queryset(self):
+        company_id = self.request.user.id
+        order_id = self.kwargs.get('order_id', None)
+        if order_id:
+            return CompanyOrder.objects.filter(id=order_id, company__id=company_id)
+
+        return CompanyOrder.objects.filter(company__id=company_id)

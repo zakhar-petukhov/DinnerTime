@@ -5,6 +5,7 @@ from rest_framework.test import APIClient
 from apps.company.models import Company, Department
 from apps.dinner.models import CategoryDish, Dish, ComplexDinner, DayMenu, Dinner, CompanyOrder
 from apps.users.models import User, Tariff
+from apps.users.utils import create_ref_link_for_update_auth_data
 from apps.utils.models import Settings
 
 
@@ -163,3 +164,14 @@ def create_company_order(db, get_token_company, get_token_user, create_dish):
         return company_order
 
     return make_order
+
+
+@pytest.fixture
+def create_referral_upid(db, get_token_user):
+    def make_referral_upid():
+        token, user = get_token_user
+        upid = create_ref_link_for_update_auth_data(obj=user)
+
+        return upid
+
+    return make_referral_upid

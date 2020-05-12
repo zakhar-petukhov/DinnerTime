@@ -99,3 +99,16 @@ class TestUserView:
         response = api_client.post(url, data=json.dumps(data), content_type='application/json')
 
         assert response.status_code == 201
+
+    def test_change_data_with_referral_upid(self, api_client, create_referral_upid):
+        url = reverse('USERS:user_change_auth_ref', kwargs={"referral_upid": create_referral_upid()})
+
+        data = {
+            "password": "TEST",
+            "phone": 89313149331,
+            "email_verified": True
+        }
+
+        response = api_client.put(url, data=json.dumps(data), content_type='application/json')
+
+        assert response.status_code == 200

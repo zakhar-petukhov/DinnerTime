@@ -36,7 +36,6 @@ urlpatterns = [
     path('jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),
     path('admin/', admin.site.urls),
     path('swagger/', SchemaView.with_ui('swagger'), name='swagger'),
-    path('api/v1/', include('apps.api.urls')),
     path('dinner/', include('apps.dinner.urls')),
     path('users/', include('apps.users.urls')),
     path('auth/', include('apps.authentication.urls')),

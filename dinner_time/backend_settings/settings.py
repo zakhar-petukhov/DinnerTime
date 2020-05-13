@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'sorl.thumbnail',
     'django_filters',
     'easy_thumbnails',
-    'apps.api',
     'apps.dinner',
     'apps.users',
     'apps.authentication',
@@ -169,8 +168,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-
-    'TEST_REQUEST_DEFAULT_FORMAT': 'json'
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
 DATE_FORMAT = '%d.%m.%Y'
@@ -178,7 +176,7 @@ TIME_FORMAT = '%H:%M:%S'
 DATETIME_FORMAT = '%d.%m.%Y'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = 'smtp.mailgun.org'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 

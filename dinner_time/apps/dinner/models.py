@@ -120,8 +120,7 @@ class DayMenu(Model):
     complex_dinner = ManyToManyField('dinner.ComplexDinner', blank=True, verbose_name='Комплексные обеды')
     available_order_date = DateField(unique=True, null=True, blank=True, verbose_name='Меню на день')
     close_order_time = ForeignKey('utils.Settings', on_delete=PROTECT, null=True, blank=True,
-                                  verbose_name='Последний час заказа еды на день',
-                                  default=Settings.objects.filter(enabled=True).first())
+                                  verbose_name='Последний час заказа еды на день')
 
     # Check whether this menu is available for ordering.
     @property

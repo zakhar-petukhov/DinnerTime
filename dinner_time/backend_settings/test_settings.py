@@ -178,6 +178,9 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
+STATIC_URL = '/staticfiles/'
+MEDIA_URL = '/media/'
+
 DATE_FORMAT = '%d.%m.%Y'
 TIME_FORMAT = '%H:%M:%S'
 DATETIME_FORMAT = '%d.%m.%Y'

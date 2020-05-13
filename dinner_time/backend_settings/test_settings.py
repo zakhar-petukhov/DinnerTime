@@ -189,3 +189,5 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.mailgun.org'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
+
+URL_FOR_CHANGE_AUTH_DATA = 'http://127.0.0.1:8000/company/ref/{}/change_auth/'

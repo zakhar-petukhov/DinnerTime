@@ -5,6 +5,9 @@ from django.db.models import *
 class Company(Model):
     company_name = CharField(max_length=20, null=True, blank=True, verbose_name='Название компании')
     full_address = CharField(max_length=500, null=True, blank=True, verbose_name='Полный адрес')
+    legal_address = CharField(max_length=500, null=True, blank=True, verbose_name='Юридический адрес')
+
+    general_director = CharField(max_length=45, null=True, blank=True, verbose_name='Генеральный директор')
 
     inn = CharField(max_length=12, null=True, blank=True, verbose_name='ИНН')
     kpp = CharField(max_length=9, null=True, blank=True, verbose_name='КПП')

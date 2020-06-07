@@ -11,4 +11,4 @@ elif [ "$value" == "dev" ];then
     export ENV=dev.env
 fi
 
-docker-compose up
+docker-compose up -d

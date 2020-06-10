@@ -112,6 +112,18 @@ class TestDinnerView:
         assert response.status_code == 200
         user_data[0]['name'] = 'Первые блюда'
 
+    def test_get_list_category(self, api_client, get_token_company, create_category_dish):
+        category = create_category_dish()
+        token_company, company = get_token_company
+        url = reverse('DINNER:list_category', kwargs={"category_id": category.id})
+        api_client.credentials(HTTP_AUTHORIZATION='Token ' + token_company.key)
+
+        response = api_client.get(url)
+        user_data = json.loads(response.content)
+
+        assert response.status_code == 200
+        user_data[0]['name'] = 'Первые блюда'
+
     def test_get_dish(self, api_client, get_token_company, create_dish):
         create_dish()
         token_company, company = get_token_company

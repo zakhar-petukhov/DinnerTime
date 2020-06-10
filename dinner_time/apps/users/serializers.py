@@ -19,7 +19,7 @@ User = get_user_model()
 class TariffSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tariff
-        fields = ['id', 'name', 'max_cost_day', 'description']
+        fields = ['id', 'name', 'max_cost_day', 'description', 'is_blocked']
 
 
 class UserCreateSerializer(serializers.ModelSerializer):

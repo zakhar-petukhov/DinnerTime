@@ -58,7 +58,13 @@ class DishViewSet(ModelViewSet):
 
 
 @method_decorator(name='list', decorator=swagger_auto_schema(
-    operation_summary='Получение всех категорий меню вместе с блюдами.',
+    operation_summary='Получение категорий меню вместе с блюдами.',
+    operation_description='''
+Метод позволяет:
+1) получить все категории меню вместе с блюдами.
+2) при передаче "category_id", получаем только блюда в выбранной категории.
+''',
+
     responses={
         '200': openapi.Response('Успешно', DishCategorySerializer),
         '400': 'Неверный формат запроса'
@@ -85,9 +91,15 @@ class DishViewSet(ModelViewSet):
                   )
 class DishCategoryViewSet(ModelViewSet):
     permission_classes = [AllowAny]
-    queryset = CategoryDish.objects.all()
     serializer_class = DishCategorySerializer
     pagination_class = pagination.LimitOffsetPagination
+
+    def get_queryset(self):
+        category_id = self.kwargs.get('category_id')
+        if category_id:
+            return CategoryDish.objects.filter(id=category_id)
+
+        return CategoryDish.objects.all()
 
     def get_object(self):
         return get_object_or_404(CategoryDish, id=self.kwargs.get("dish_category_id"))

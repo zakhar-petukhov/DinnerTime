@@ -13,6 +13,7 @@ urlpatterns = [
     path('list_menu/', MenuViewSet.as_view({'get': 'list'}), name='list_all_menu'),
     path('list_all_dish/', DishViewSet.as_view({'get': 'list'}), name='list_all_dish'),
     path('list_all_category/', DishCategoryViewSet.as_view({'get': 'list'}), name='list_all_category'),
+    path('list_category/<category_id>/', DishCategoryViewSet.as_view({'get': 'list'}), name='list_category'),
     path('list_complex_dinner/', ComplexDinnerViewSet.as_view({'get': 'list'}), name='list_all_complex_dinner'),
 
     path('detail_complex_dinner/<complex_id>/', ComplexDinnerViewSet.as_view({'get': 'list'}),

@@ -2,8 +2,8 @@ import datetime
 
 from django.db.models import *
 
+from apps.common.models import Settings
 from apps.users.models import User
-from apps.utils.models import Settings
 
 
 class CompanyOrder(Model):
@@ -119,7 +119,7 @@ class DayMenu(Model):
     dish = ManyToManyField('dinner.Dish', blank=True, verbose_name='Блюда')
     complex_dinner = ManyToManyField('dinner.ComplexDinner', blank=True, verbose_name='Комплексные обеды')
     available_order_date = DateField(unique=True, null=True, blank=True, verbose_name='Меню на день')
-    close_order_time = ForeignKey('utils.Settings', on_delete=PROTECT, null=True, blank=True,
+    close_order_time = ForeignKey('common.Settings', on_delete=PROTECT, null=True, blank=True,
                                   verbose_name='Последний час заказа еды на день')
 
     # Check whether this menu is available for ordering.

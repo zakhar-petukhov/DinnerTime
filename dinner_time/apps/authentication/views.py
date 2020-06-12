@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from apps.users.serializers import EmptySerializer
-from apps.utils.models import ReferralLink
+from apps.common.models import ReferralLink
 from .serializers import *
 from .utils import get_and_authenticate_user
 

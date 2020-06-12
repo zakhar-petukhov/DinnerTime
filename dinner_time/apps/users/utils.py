@@ -2,8 +2,8 @@ import uuid
 
 from django.contrib.auth import get_user_model
 
+from apps.common.models import ReferralLink
 from apps.company.models import Company
-from apps.utils.models import ReferralLink
 
 
 def generate_random_password_username():

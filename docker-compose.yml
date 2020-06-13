@@ -10,6 +10,7 @@ services:
       - "443:443"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./dinner_time/media:/app/dinner_time/media
     depends_on:
       - server
 
@@ -28,6 +29,8 @@ services:
       - $ENV
     expose:
       - 8000
+    volumes:
+      - ./dinner_time/media:/app/dinner_time/media
     command: scripts/docker-entrypoint.sh
     depends_on:
       - db

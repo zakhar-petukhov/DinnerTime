@@ -11,6 +11,7 @@ from rest_framework.fields import SkipField, set_value
 from rest_framework.relations import PKOnlyObject
 from rest_framework.settings import api_settings
 
+from apps.common.serializers import ImagesSerializer
 from apps.users.models import Tariff
 
 User = get_user_model()
@@ -42,13 +43,14 @@ class UserSerializer(serializers.ModelSerializer):
     Main user serializer for get information
     """
     tariff = TariffSerializer()
+    image_user = ImagesSerializer(many=True)
 
     class Meta:
         model = User
         fields = ['id', 'last_login', 'is_superuser', 'is_staff', 'is_active', 'date_joined', 'first_name',
                   'last_name', 'middle_name', 'phone', 'email', 'tariff', 'department', 'email_verified', 'is_blocked',
                   'block_date', 'company_data', 'create_date', 'update_date', 'lft', 'rght', 'tree_id', 'level',
-                  'parent', 'groups', 'user_permissions']
+                  'parent', 'groups', 'user_permissions', 'image_user']
 
 
 class UserChangeSerializer(serializers.ModelSerializer):

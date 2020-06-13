@@ -3,7 +3,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import pagination
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
 from apps.dinner.serializers import *
@@ -48,7 +48,7 @@ from .data_for_swagger import *
 )
                   )
 class DishViewSet(ModelViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     queryset = Dish.objects.all()
     serializer_class = DishSerializer
     pagination_class = pagination.LimitOffsetPagination
@@ -90,7 +90,7 @@ class DishViewSet(ModelViewSet):
 )
                   )
 class DishCategoryViewSet(ModelViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     serializer_class = DishCategorySerializer
     pagination_class = pagination.LimitOffsetPagination
 
@@ -144,7 +144,7 @@ class DishCategoryViewSet(ModelViewSet):
 )
                   )
 class ComplexDinnerViewSet(ModelViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     queryset = ComplexDinner.objects.all()
     serializer_class = ComplexDinnerSerializer
     pagination_class = pagination.LimitOffsetPagination
@@ -197,7 +197,7 @@ class ComplexDinnerViewSet(ModelViewSet):
 )
                   )
 class MenuViewSet(ModelViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     queryset = DayMenu.objects.all()
     serializer_class = MenuSerializer
 

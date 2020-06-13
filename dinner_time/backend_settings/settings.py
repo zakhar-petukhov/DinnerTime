@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'apps.authentication',
     'apps.utils',
     'apps.company',
+    'apps.common',
     'phonenumber_field',
     'config_models',
     'django_extensions',

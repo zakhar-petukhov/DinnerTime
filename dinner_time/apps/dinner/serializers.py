@@ -1,10 +1,10 @@
 from rest_framework import serializers
 
+from apps.common.serializers import SettingsSerializer
 from apps.company.serializers import CompanyDetailSerializer
 from apps.dinner.models import *
 from apps.dinner.utils import get_additional_dish, get_additional_dish_for_complex, get_day_menu
 from apps.users.serializers import UserSerializer
-from apps.utils.serializers import SettingsSerializer
 
 
 class AddedDishSerializer(serializers.ModelSerializer):

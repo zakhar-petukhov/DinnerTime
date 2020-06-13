@@ -1,8 +1,13 @@
 from django.urls import path
+from rest_framework.routers import DefaultRouter
 
+from apps.common.views import ImageViewSet
 from .views import *
 
 app_name = "DINNER"
+
+router = DefaultRouter()
+router.register(r'image', ImageViewSet, base_name='dinner_image')
 
 urlpatterns = [
     path('create_dish/', DishViewSet.as_view({'post': 'create'}), name='create_dish'),
@@ -35,4 +40,5 @@ urlpatterns = [
          ComplexDinnerViewSet.as_view({'delete': 'destroy'}, name='delete_complex_dinner'),
          name='delete_complex_dinner'),
 
+    *router.urls
 ]

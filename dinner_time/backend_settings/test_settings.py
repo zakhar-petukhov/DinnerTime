@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'easy_thumbnails',
     'apps.dinner',
     'apps.users',
+    'apps.common',
     'apps.authentication',
     'apps.utils',
     'apps.company',

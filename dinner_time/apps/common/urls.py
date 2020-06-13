@@ -1,8 +1,8 @@
 from django.urls import path
 
-from apps.utils.views import SettingsViewSet
+from apps.common.views import SettingsViewSet
 
-app_name = "UTILS"
+app_name = "COMMON"
 
 urlpatterns = [
     path('change_settings/<settings_id>', SettingsViewSet.as_view({'put': 'update'}), name='change_settings'),

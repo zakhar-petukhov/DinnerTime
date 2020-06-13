@@ -2,11 +2,11 @@ import pytest
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
+from apps.common.models import Settings
 from apps.company.models import Company, Department
 from apps.dinner.models import CategoryDish, Dish, ComplexDinner, DayMenu, Dinner, CompanyOrder
 from apps.users.models import User, Tariff
 from apps.users.utils import create_ref_link_for_update_auth_data
-from apps.utils.models import Settings
 
 
 @pytest.fixture

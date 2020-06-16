@@ -188,6 +188,7 @@ class ComplexDinnerViewSet(ModelViewSet):
 1) собрать меню из блюд путем добавления "id" блюда в dish.
 2) собрать комплексный обед путем добавления "id" комплексного обеда в complex_dinner.
 3) установить дату показа этого меню.
+4) number_day - является номером дня недели, где 0 - это воскресенье (нужно для темлейтов)
 ''',
     request_body=request_for_create_menu,
     responses={
@@ -203,3 +204,48 @@ class MenuViewSet(ModelViewSet):
 
     def get_object(self):
         return get_object_or_404(DayMenu, id=self.kwargs.get("menu_id"))
+
+
+@method_decorator(name='create', decorator=swagger_auto_schema(
+    operation_summary='Создание шаблона.',
+    operation_description='''
+Как работает?
+1) дать название этому шаблону.
+2) выставить номер недели, на которой будет показываться шаблон.
+3) добавить "id" недельного меню.
+''',
+    request_body=request_for_template,
+    responses={
+        '201': openapi.Response('Создано', TemplateSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
+class TemplateViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    queryset = Template.objects.all()
+    serializer_class = TemplateSerializer
+
+    def get_object(self):
+        return get_object_or_404(Template, id=self.kwargs.get("pk"))
+
+
+@method_decorator(name='create', decorator=swagger_auto_schema(
+    operation_summary='Создание недельного меню.',
+    operation_description='''
+Передаем в "id" значение из DayMenu.
+''',
+    request_body=request_for_week_menu,
+    responses={
+        '201': openapi.Response('Создано', WeekMenuSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
+class WeekMenuViewSet(ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    queryset = WeekMenu.objects.all()
+    serializer_class = WeekMenuSerializer
+
+    def get_object(self):
+        return get_object_or_404(WeekMenu, id=self.kwargs.get("pk"))

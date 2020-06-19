@@ -206,6 +206,38 @@ class MenuViewSet(ModelViewSet):
         return get_object_or_404(DayMenu, id=self.kwargs.get("menu_id"))
 
 
+@method_decorator(name='list', decorator=swagger_auto_schema(
+    operation_summary='Просмотр темплейта.',
+    responses={
+        '200': openapi.Response('Успешно', TemplateSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
+@method_decorator(name='update', decorator=swagger_auto_schema(
+    operation_summary='Обновление темплейта.',
+    operation_description='''
+Метод позволяет:
+1) изменить название шаблона.
+2) изменить номер недели для показа (1-4).
+
+ps: если надо менять что то по блюдам, то все запросы в раздел блюда
+''',
+    request_body=request_for_template,
+    responses={
+        '200': openapi.Response('Успешно', TemplateSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
+@method_decorator(name='destroy', decorator=swagger_auto_schema(
+    operation_summary='Удаление темплейта.',
+    responses={
+        '204': 'Удалено',
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
 @method_decorator(name='create', decorator=swagger_auto_schema(
     operation_summary='Создание шаблона.',
     operation_description='''
@@ -230,6 +262,36 @@ class TemplateViewSet(ModelViewSet):
         return get_object_or_404(Template, id=self.kwargs.get("pk"))
 
 
+@method_decorator(name='list', decorator=swagger_auto_schema(
+    operation_summary='Просмотр недельного меню.',
+    responses={
+        '200': openapi.Response('Успешно', WeekMenuSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
+@method_decorator(name='update', decorator=swagger_auto_schema(
+    operation_summary='Обновление недельного меню.',
+    operation_description='''
+Метод позволяет:
+1) добавить в недельное меню еще один день, путем передачи "id" дневного меню.
+2) удалить из недельного меню дневное меню, путем передачи "id" дневного меню с флагом "remove": true.
+''',
+    request_body=request_for_remove_day_menu_from_week_menu,
+    responses={
+        '200': openapi.Response('Успешно', WeekMenuSerializer),
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
+@method_decorator(name='destroy', decorator=swagger_auto_schema(
+    operation_summary='Удаление недельного меню.',
+    responses={
+        '204': 'Удалено',
+        '400': 'Неверный формат запроса'
+    }
+)
+                  )
 @method_decorator(name='create', decorator=swagger_auto_schema(
     operation_summary='Создание недельного меню.',
     operation_description='''

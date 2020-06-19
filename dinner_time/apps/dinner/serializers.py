@@ -215,13 +215,27 @@ class WeekMenuSerializer(serializers.ModelSerializer):
 
         return week_menu
 
+    def update(self, instance, validated_data):
+        dishes = self.initial_data.get('dishes')
+
+        for dish in dishes:
+            remove = dish.get('remove')
+            day_menu = DayMenu.objects.get(id=dish.get('id'))
+
+            if remove:
+                instance.dishes.remove(day_menu)
+            else:
+                instance.dishes.add(day_menu)
+
+        return instance
+
 
 class TemplateSerializer(serializers.ModelSerializer):
     """
     Serializer for template
     """
 
-    menu = WeekMenuSerializer()
+    menu = WeekMenuSerializer(required=False)
 
     class Meta:
         model = Template

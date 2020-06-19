@@ -3,12 +3,16 @@ from django.core.mail import EmailMessage
 from rest_framework import status
 from rest_framework.response import Response
 
+from apps.users.models import User
 from apps.users.utils import *
 from apps.utils.func_for_send_message import *
 
 
 def create_user_or_company(company_name, serializer, parent=None, is_company=False):
     serializer.validated_data.update(generate_random_password_username())
+
+    if User.objects.filter(phone=serializer.validated_data.get('phone')).exists():
+        return Response(status=status.HTTP_400_BAD_REQUEST, data='Phone number already in use.')
 
     user = create_user_account(parent=parent, **serializer.validated_data)
     upid = create_ref_link_for_update_auth_data(obj=user)

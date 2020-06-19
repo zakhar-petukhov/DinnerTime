@@ -15,7 +15,7 @@ from apps.company.serializers import *
 from apps.company.serializers import DepartmentSerializer
 from apps.company.utils import create_user_or_company
 from apps.dinner.models import Dinner, CompanyOrder
-from apps.dinner.serializers import DinnerSerializer, DinnerHistoryOrder
+from apps.dinner.serializers import DinnerSerializer, DinnerHistoryOrderSerializer
 from apps.users.models import User
 from apps.users.permissions import IsCompanyAuthenticated
 from apps.users.serializers import UserCreateSerializer
@@ -207,13 +207,13 @@ class DinnerCheckOrderViewSet(ModelViewSet):
     operation_description='''Есть возможность просмотра всех заказов компании, а также посмотреть детально \
 только один заказ, путем передачи order_id.''',
     responses={
-        '200': openapi.Response('Успешно', DinnerHistoryOrder),
+        '200': openapi.Response('Успешно', DinnerHistoryOrderSerializer),
         '400': 'Неверный формат запроса'
     }
 )
                   )
 class CompanyHistoryOrder(ListAPIView):
-    serializer_class = DinnerHistoryOrder
+    serializer_class = DinnerHistoryOrderSerializer
     permission_classes = [IsCompanyAuthenticated]
     pagination_class = pagination.LimitOffsetPagination
 

@@ -7,7 +7,9 @@ from .views import *
 app_name = "DINNER"
 
 router = DefaultRouter()
-router.register(r'image', ImageViewSet, base_name='dinner_image')
+router.register('image', ImageViewSet, base_name='dinner_image')
+router.register('template', TemplateViewSet, base_name='template')
+router.register('week_menu', WeekMenuViewSet, base_name='week_menu')
 
 urlpatterns = [
     path('create_dish/', DishViewSet.as_view({'post': 'create'}), name='create_dish'),

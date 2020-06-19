@@ -119,6 +119,7 @@ class DayMenu(Model):
     dish = ManyToManyField('dinner.Dish', blank=True, verbose_name='Блюда')
     complex_dinner = ManyToManyField('dinner.ComplexDinner', blank=True, verbose_name='Комплексные обеды')
     available_order_date = DateField(unique=True, null=True, blank=True, verbose_name='Меню на день')
+    number_day = SmallIntegerField(blank=True, null=True, verbose_name='Номер дня недели (если приоритет не дата)')
     close_order_time = ForeignKey('common.Settings', on_delete=PROTECT, null=True, blank=True,
                                   verbose_name='Последний час заказа еды на день')
 
@@ -132,3 +133,18 @@ class DayMenu(Model):
     class Meta:
         verbose_name = "Дневное меню"
         verbose_name_plural = "Дневное меню"
+
+
+class WeekMenu(Model):
+    dishes = ManyToManyField('dinner.DayMenu', blank=True, verbose_name='Дневное меню')
+
+
+class Template(Model):
+    name = CharField(max_length=40, blank=True, null=True, verbose_name='Название шаблона')
+    number_week = SmallIntegerField(blank=True, null=True, verbose_name='Номер недели')
+    menu = ForeignKey('dinner.WeekMenu', on_delete=PROTECT, null=True, blank=True,
+                      verbose_name='Меню')
+
+    class Meta:
+        verbose_name = "Шаблон"
+        verbose_name_plural = "Шаблон"

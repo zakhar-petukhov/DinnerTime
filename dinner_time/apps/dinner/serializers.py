@@ -106,14 +106,14 @@ class MenuSerializer(serializers.ModelSerializer):
     """
     Serializer for menu (create, update)
     """
-
+    id = serializers.IntegerField(read_only=False, required=False)
     dish = DishSerializer(many=True, required=False)
     complex_dinner = ComplexDinnerSerializer(many=True, required=False)
     close_order_time = SettingsSerializer(required=False)
 
     class Meta:
         model = DayMenu
-        fields = ['id', 'dish', 'complex_dinner', 'available_order_date', 'close_order_time']
+        fields = ['id', 'dish', 'complex_dinner', 'available_order_date', 'close_order_time', 'number_day']
 
     def create(self, validated_data):
         dish_validated_data = validated_data.pop('dish', [])
@@ -180,7 +180,7 @@ class DinnerSerializer(serializers.ModelSerializer):
         return dinner
 
 
-class DinnerHistoryOrder(serializers.ModelSerializer):
+class DinnerHistoryOrderSerializer(serializers.ModelSerializer):
     """
     Serializer for get order dinner
     """
@@ -190,3 +190,58 @@ class DinnerHistoryOrder(serializers.ModelSerializer):
     class Meta:
         model = CompanyOrder
         fields = ['id', 'company', 'dinners', 'create_date']
+
+
+class WeekMenuSerializer(serializers.ModelSerializer):
+    """
+    Serializer for week menu
+    """
+
+    id = serializers.IntegerField(read_only=False, required=False)
+    dishes = MenuSerializer(many=True, required=False)
+
+    class Meta:
+        model = WeekMenu
+        fields = ['id', 'dishes']
+
+    def create(self, validated_data):
+        dishes = validated_data['dishes']
+
+        week_menu = WeekMenu.objects.create()
+
+        for dish in dishes:
+            day_menu = DayMenu.objects.get(id=dish.get('id'))
+            week_menu.dishes.add(day_menu)
+
+        return week_menu
+
+    def update(self, instance, validated_data):
+        dishes = self.initial_data.get('dishes')
+
+        for dish in dishes:
+            remove = dish.get('remove')
+            day_menu = DayMenu.objects.get(id=dish.get('id'))
+
+            if remove:
+                instance.dishes.remove(day_menu)
+            else:
+                instance.dishes.add(day_menu)
+
+        return instance
+
+
+class TemplateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for template
+    """
+
+    menu = WeekMenuSerializer(required=False)
+
+    class Meta:
+        model = Template
+        fields = ['id', 'name', 'number_week', 'menu']
+
+    def create(self, validated_data):
+        pk = validated_data.pop('menu')['id']
+        week_menu = WeekMenu.objects.get(id=pk)
+        return Template.objects.create(menu=week_menu, **validated_data)

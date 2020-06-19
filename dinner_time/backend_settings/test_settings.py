@@ -45,13 +45,14 @@ INSTALLED_APPS = [
     'easy_thumbnails',
     'apps.dinner',
     'apps.users',
-    'apps.common',
     'apps.authentication',
     'apps.utils',
     'apps.company',
+    'apps.common',
     'phonenumber_field',
     'config_models',
-    'django_extensions'
+    'django_extensions',
+    'corsheaders'
 ]
 
 DATABASES = {

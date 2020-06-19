@@ -4,7 +4,7 @@ from rest_framework.test import APIClient
 
 from apps.common.models import Settings
 from apps.company.models import Company, Department
-from apps.dinner.models import CategoryDish, Dish, ComplexDinner, DayMenu, Dinner, CompanyOrder
+from apps.dinner.models import CategoryDish, Dish, ComplexDinner, DayMenu, Dinner, CompanyOrder, Template, WeekMenu
 from apps.users.models import User, Tariff
 from apps.users.utils import create_ref_link_for_update_auth_data
 
@@ -175,3 +175,26 @@ def create_referral_upid(db, get_token_user):
         return upid
 
     return make_referral_upid
+
+
+@pytest.fixture
+def create_week_menu(db, create_menu):
+    def make_create_week_menu():
+        week_menu = WeekMenu.objects.create()
+        week_menu.dishes.add(create_menu())
+        return week_menu
+
+    return make_create_week_menu
+
+
+@pytest.fixture
+def create_template(db, create_week_menu):
+    def make_create_template():
+        data = {
+            "name": "Шаблон №0",
+            "number_week": 1
+        }
+
+        return Template.objects.create(menu=create_week_menu(), **data)
+
+    return make_create_template

@@ -112,3 +112,21 @@ class TestUserView:
         response = api_client.put(url, data=json.dumps(data), content_type='application/json')
 
         assert response.status_code == 200
+
+    def test_user_create_dinner(self, api_client, get_token_user, create_dish):
+        token, user = get_token_user
+        url = reverse('USERS:user_add_dish')
+        data = {
+            "dishes": [
+                {
+                    "id": create_dish().id
+                }
+            ]
+        }
+
+        api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+        response = api_client.post(url, data=json.dumps(data), content_type='application/json')
+        user_data = json.loads(response.content)
+
+        assert response.status_code == 201
+        assert user_data['dishes'][0]['name'] == 'Томатный суп'

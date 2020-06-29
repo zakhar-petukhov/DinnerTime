@@ -9,7 +9,7 @@ class TestUserView:
     def test_user_change_information(self, api_client, get_token_user, get_token_company):
         token_company, company = get_token_company
         token_user, user = get_token_user
-        url = reverse('USERS:user-detail', kwargs={'pk': user.id})
+        url = reverse('USERS:change_detail_information', kwargs={'pk': user.id})
         api_client.credentials(HTTP_AUTHORIZATION='Token ' + token_company.key)
 
         data = {
@@ -26,14 +26,14 @@ class TestUserView:
 
     def test_user_get_detail_information(self, api_client, get_token_user):
         token_user, user = get_token_user
-        url = reverse('USERS:user-detail-information', kwargs={"pk": user.id})
+        url = reverse('USERS:detail_information', kwargs={"pk": user.id})
         api_client.credentials(HTTP_AUTHORIZATION='Token ' + token_user.key)
 
         response = api_client.get(url)
         user_data = json.loads(response.content)
 
         assert response.status_code == 200
-        assert user_data['first_name'] == 'Тест'
+        assert user_data[0]['first_name'] == 'Тест'
 
     def test_create_tariff(self, api_client, get_token_user):
         token_user, user = get_token_user

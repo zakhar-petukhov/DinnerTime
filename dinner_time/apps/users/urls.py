@@ -8,11 +8,13 @@ from apps.users.views import *
 app_name = "USERS"
 
 router = routers.DefaultRouter()
-router.register(r'user', UserViewSet, base_name='user')
 router.register(r'image', ImageViewSet, base_name='user_image')
 
 urlpatterns = [
     path('ref/<str:referral_upid>/change_auth/', UserChangeRegAuthDataView.as_view(), name='user_change_auth_ref'),
+
+    path('user/<pk>/detail_information/', UserView.as_view({'get': 'list'}), name='detail_information'),
+    path('user/<pk>/', UserView.as_view({'put': 'update'}), name='change_detail_information'),
 
     path('create/dinner/', UserCreateDinnerView.as_view({'post': 'create'}), name='user_add_dish'),
 

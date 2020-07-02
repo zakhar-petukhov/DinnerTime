@@ -13,6 +13,4 @@ elif [ "$value" == "dev" ];then
     export ENV=dev.env
 fi
 
-export $(grep -v '^#' $ENV | xargs)
-
 docker-compose up -d

@@ -1,7 +1,3 @@
-from datetime import datetime
-
-import pytz
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from phonenumber_field.phonenumber import PhoneNumber
 from rest_framework import serializers
@@ -47,14 +43,6 @@ class UserSerializer(serializers.ModelSerializer):
                   'last_name', 'middle_name', 'phone', 'email', 'tariff', 'department', 'email_verified', 'is_blocked',
                   'block_date', 'company_data', 'create_date', 'update_date', 'lft', 'rght', 'tree_id', 'level',
                   'parent', 'groups', 'user_permissions', 'image_user']
-
-    def update(self, instance, validated_data):
-        if validated_data.get('is_blocked'):
-            validated_data['block_date'] = datetime.now(pytz.timezone(settings.TIME_ZONE))
-        else:
-            validated_data['block_date'] = None
-
-        return super().update(instance, validated_data)
 
 
 class EmptySerializer(serializers.Serializer):

@@ -1,3 +1,7 @@
+from datetime import datetime
+
+import pytz
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db.models import *
 from mptt.fields import TreeForeignKey
@@ -40,6 +44,18 @@ class User(AbstractUser, MPTTModel):
     def get_full_name(self):
         full_name = '%s %s' % (self.first_name, self.last_name)
         return full_name.strip()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.blocked = self.is_blocked
+
+    def save(self, *args, **kwargs):
+        if self.is_blocked and not self.blocked:
+            self.block_date = datetime.now(pytz.timezone(settings.TIME_ZONE))
+        else:
+            self.block_date = None
+
+        return super().save(*args, **kwargs)
 
     @staticmethod
     def autocomplete_search_fields():

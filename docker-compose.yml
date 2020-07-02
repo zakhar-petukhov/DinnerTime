@@ -38,6 +38,8 @@ services:
   backups:
     container_name: backup
     restart: always
+    env_file:
+      - $ENV
     build: .
     depends_on:
       - db

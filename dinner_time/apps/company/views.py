@@ -73,7 +73,7 @@ class AllCompaniesView(ListAPIView):
                   )
 class CompanyDetailView(ListAPIView):
     serializer_class = CompanyGetSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsCompanyAuthenticated]
 
     def get_queryset(self):
         company_id = self.kwargs.get('company_id')
@@ -98,7 +98,7 @@ class CompanyDetailView(ListAPIView):
                   )
 class CompanyChangeDetailView(UpdateAPIView):
     serializer_class = CompanyGetSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsCompanyAuthenticated]
 
     def get_object(self):
         company_id = self.kwargs.get("company_id")
